@@ -1,0 +1,39 @@
+{
+  "[csharp]": {
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-dotnettools.csharp"
+  },
+  "cSpell.language": "en,fr",
+  "cSpell.words": ["dotnet", "DOTNET", "initializers", "slnx"],
+  "dotnet.formatting.organizeImportsOnFormat": true,
+  "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.rulers": [120],
+  "files.associations": {
+    "*.slnx": "xml"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/bin/**": true,
+    "**/obj/**": true
+  },
+  "omnisharp.useEditorFormattingSettings": false,
+  "omnisharp.enableEditorConfigSupport": true,
+  "search.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/bin/**": true,
+    "**/obj/**": true
+  }
+}
