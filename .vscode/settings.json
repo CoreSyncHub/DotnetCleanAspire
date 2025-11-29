@@ -6,8 +6,8 @@
   },
   "cSpell.language": "en,fr",
   "cSpell.words": ["dotnet", "DOTNET", "initializers", "slnx"],
-  "dotnet.formatting.organizeImportsOnFormat": true,
   "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
+  "dotnet.formatting.organizeImportsOnFormat": true,
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit"
@@ -35,5 +35,9 @@
     "**/Thumbs.db": true,
     "**/bin/**": true,
     "**/obj/**": true
+  },
+  "sonarlint.connectedMode.project": {
+    "connectionId": "sonarqube-coresync",
+    "projectKey": "CoreSyncHub_DotnetCleanAspire_5f1ae745-b7bf-49e2-8d85-050da999de85"
   }
 }

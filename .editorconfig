@@ -3,14 +3,17 @@ root=true
 ##################################################
 ################ GENERAL SETTINGS ################
 ##################################################
+[*]
+indent_style = space
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+spelling_exclusion_path = spelling.dic
+
 [*.cs]
 trim_trailing_whitespace=true
 insert_final_newline=true
 end_of_line = lf
-
-[*]
-indent_style = tab
-indent_size = 4
 
 [*.cshtml]
 indent_style = tab

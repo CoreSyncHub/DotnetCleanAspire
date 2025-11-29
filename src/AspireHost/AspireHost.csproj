@@ -1,0 +1,14 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.0.1">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsAspireHost>true</IsAspireHost>
+    <RootNamespace>AspireHost</RootNamespace>
+    <AssemblyName>AspireHost</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Presentation\Presentation.csproj" />
+  </ItemGroup>
+
+</Project>
