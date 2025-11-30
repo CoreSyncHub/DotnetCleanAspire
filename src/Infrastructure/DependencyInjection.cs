@@ -11,40 +11,40 @@ namespace Infrastructure;
 /// <summary>
 /// Extension methods for registering Infrastructure layer services.
 /// </summary>
-public static class InfrastructureDependencyInjection
+internal static class InfrastructureDependencyInjection
 {
-   /// <summary>
-   /// Adds Infrastructure layer services to the service collection.
-   /// </summary>
-   /// <param name="services">The service collection.</param>
-   /// <param name="configuration">The configuration.</param>
-   /// <returns>The service collection for chaining.</returns>
-   public static IServiceCollection AddInfrastructure(
-       this IServiceCollection services,
-       IConfiguration configuration)
+   extension(IServiceCollection services)
    {
-      // Interceptors
-      services.AddScoped<AuditableEntityInterceptor>();
-
-      // DbContext (can be overridden by Aspire)
-      services.AddDbContext<ApplicationDbContext>((sp, options) =>
+      /// <summary>
+      /// Adds Infrastructure layer services to the service collection.
+      /// </summary>
+      /// <param name="configuration">The configuration.</param>
+      /// <returns>The service collection for chaining.</returns>
+      public IServiceCollection AddInfrastructure(IConfiguration configuration)
       {
-         string? connectionString = configuration.GetConnectionString("DefaultConnection");
-         if (!string.IsNullOrEmpty(connectionString))
+         // Interceptors
+         services.AddScoped<AuditableEntityInterceptor>();
+
+         // DbContext (can be overridden by Aspire)
+         services.AddDbContext<ApplicationDbContext>((sp, options) =>
          {
-            options.UseNpgsql(connectionString);
-         }
+            string? connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+               options.UseNpgsql(connectionString);
+            }
 
-         options.AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>());
-      });
+            options.AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>());
+         });
 
-      // Register as IApplicationDbContext
-      services.AddScoped<IApplicationDbContext>(sp =>
-          sp.GetRequiredService<ApplicationDbContext>());
+         // Register as IApplicationDbContext
+         services.AddScoped<IApplicationDbContext>(sp =>
+             sp.GetRequiredService<ApplicationDbContext>());
 
-      // Caching
-      services.AddScoped<ICacheService, DistributedCacheService>();
+         // Caching
+         services.AddScoped<ICacheService, DistributedCacheService>();
 
-      return services;
+         return services;
+      }
    }
 }
