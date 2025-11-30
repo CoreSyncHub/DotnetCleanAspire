@@ -1,5 +1,3 @@
-using Domain.Abstractions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Infrastructure.Extensions;
@@ -11,6 +9,7 @@ internal static class ModelBuilderExtensions
       public void ConfigureBaseAbstractions()
       {
          modelBuilder.ConfigureId();
+         modelBuilder.ConfigureAuditableEntity();
          modelBuilder.ConfigureAggregateRoot();
       }
 
@@ -20,6 +19,21 @@ internal static class ModelBuilderExtensions
          {
             IMutableProperty? id = entityType.FindProperty(nameof(IEntity.Id));
             id?.ValueGenerated = ValueGenerated.Never;
+         }
+      }
+
+      private void ConfigureAuditableEntity()
+      {
+         foreach (IMutableEntityType entityType in modelBuilder.Model.GetEntityTypes().Where(e => typeof(IAuditableEntity).IsAssignableFrom(e.ClrType)))
+         {
+            modelBuilder.Entity(entityType.ClrType, eb =>
+            {
+               eb.Property(nameof(IAuditableEntity.Created)).HasColumnName("created_utc").IsRequired();
+               eb.Property(nameof(IAuditableEntity.CreatedBy)).HasColumnName("created_by").HasMaxLength(64);
+               eb.Property(nameof(IAuditableEntity.LastModified)).HasColumnName("last_modified_utc");
+               eb.Property(nameof(IAuditableEntity.LastModifiedBy)).HasColumnName("last_modified_by").HasMaxLength(64);
+               eb.Property(nameof(IAuditableEntity.Version)).IsRowVersion();
+            });
          }
       }
 

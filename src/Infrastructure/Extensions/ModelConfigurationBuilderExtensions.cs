@@ -1,5 +1,4 @@
 using Infrastructure.Persistence.Converters;
-using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Extensions;
 

@@ -23,7 +23,8 @@
 *.txt       text eol=lf
 *.ps1       text eol=lf
 *.sh        text eol=lf
-*.bat       text eol=crlf  # Windows scripts
+# Windows scripts
+*.bat       text eol=crlf
 
 Dockerfile  text eol=lf
 .editorconfig text eol=lf
