@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Infrastructure.Persistence.Interceptors;
 
-internal sealed class AuditableEntityInterceptor(IUser user) : SaveChangesInterceptor
+public sealed class AuditableEntityInterceptor(IUser user) : SaveChangesInterceptor
 {
    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
    {

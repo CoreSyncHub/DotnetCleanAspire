@@ -2,24 +2,26 @@ using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Domain.Todos.Entities;
 using Infrastructure.Extensions;
+using Infrastructure.Persistence.Interceptors;
 
 namespace Infrastructure.Persistence;
 
 public sealed class ApplicationDbContext(
     DbContextOptions<ApplicationDbContext> options,
-    IDispatcher dispatcher) : DbContext(options), IApplicationDbContext
+    IDispatcher dispatcher,
+    AuditableEntityInterceptor auditableEntityInterceptor) : DbContext(options), IApplicationDbContext
 {
    public DbSet<Todo> Todos => Set<Todo>();
 
    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
    {
       // Collect domain events before saving
-      var aggregateRoots = ChangeTracker.Entries<IAggregateRoot>()
+      List<AggregateRoot> aggregateRoots = ChangeTracker.Entries<IAggregateRoot>()
           .Select(e => e.Entity)
           .OfType<AggregateRoot>()
           .ToList();
 
-      var domainEvents = aggregateRoots
+      List<IDomainEvent> domainEvents = aggregateRoots
           .SelectMany(r => r.DomainEvents)
           .ToList();
 
@@ -39,6 +41,12 @@ public sealed class ApplicationDbContext(
       }
 
       return result;
+   }
+
+   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+   {
+      base.OnConfiguring(optionsBuilder);
+      optionsBuilder.AddInterceptors(auditableEntityInterceptor);
    }
 
    protected override void OnModelCreating(ModelBuilder modelBuilder)

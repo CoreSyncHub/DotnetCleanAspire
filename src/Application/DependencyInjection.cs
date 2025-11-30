@@ -6,7 +6,7 @@ namespace Application;
 /// <summary>
 /// Extension methods for registering Application layer services.
 /// </summary>
-internal static class ApplicationDependencyInjection
+public static class ApplicationDependencyInjection
 {
    extension(IServiceCollection services)
    {

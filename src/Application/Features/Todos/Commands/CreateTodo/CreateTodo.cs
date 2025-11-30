@@ -40,7 +40,9 @@ internal sealed class CreateTodoCommandHandler(IApplicationDbContext dbContext) 
       dbContext.Todos.Add(todo);
       await dbContext.SaveChangesAsync(cancellationToken);
 
-      // Return response
-      return new CreateTodoDto(todo.Id.ToString(), todo.Title.Value);
+      // Return response with Created status
+      return Result<CreateTodoDto>.Success(
+          new CreateTodoDto(todo.Id.ToString(), todo.Title.Value),
+          SuccessType.Created);
    }
 }

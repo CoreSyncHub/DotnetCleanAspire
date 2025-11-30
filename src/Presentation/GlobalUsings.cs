@@ -1,0 +1,9 @@
+global using Application.Abstractions.Messaging;
+global using Asp.Versioning;
+global using Asp.Versioning.Builder;
+global using Domain.Abstractions;
+global using Microsoft.AspNetCore.Diagnostics;
+global using Microsoft.AspNetCore.Mvc;
+global using System.Reflection;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;

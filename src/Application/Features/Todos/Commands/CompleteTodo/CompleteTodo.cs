@@ -37,6 +37,6 @@ internal sealed class CompleteTodoCommandHandler(IApplicationDbContext dbContext
       // Persist
       await dbContext.SaveChangesAsync(cancellationToken);
 
-      return Result.Success();
+      return Result.Success(SuccessType.NoContent);
    }
 }

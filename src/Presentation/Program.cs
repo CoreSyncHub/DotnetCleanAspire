@@ -1,48 +1,31 @@
-using Presentation.Converters;
+using Application;
+using Infrastructure;
+using Presentation.Extensions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Add Aspire service defaults (telemetry, health checks, etc.)
+builder.AddServiceDefaults();
+
+// Add application layers
+builder.Services.AddApplication();
+builder.AddInfrastructure();
+builder.Services.AddPresentation();
 
 WebApplication app = builder.Build();
 
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.Converters.Add(new IdJsonConverter());
-});
+// Create API version set
+ApiVersionSet versions = app.NewApiVersionSet()
+    .HasApiVersion(new ApiVersion(1, 0))
+    .ReportApiVersions()
+    .Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// Configure middleware pipeline
+app.ConfigurePipeline();
 
-app.UseHttpsRedirection();
-
-string[] summaries =
-[
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-];
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+// Map endpoints
+app.UseOpenApiDocumentation();
+app.MapHealthCheckEndpoints();
+app.MapEndpoints(versions);
 
 await app.RunAsync();
-
-internal sealed record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

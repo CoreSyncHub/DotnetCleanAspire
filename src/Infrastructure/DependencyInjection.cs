@@ -1,50 +1,47 @@
 using Application.Abstractions.Caching;
+using Application.Abstractions.Helpers;
 using Application.Abstractions.Persistence;
 using Infrastructure.Caching;
+using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Interceptors;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Infrastructure;
 
 /// <summary>
 /// Extension methods for registering Infrastructure layer services.
 /// </summary>
-internal static class InfrastructureDependencyInjection
+public static class InfrastructureDependencyInjection
 {
-   extension(IServiceCollection services)
+   extension(IHostApplicationBuilder builder)
    {
       /// <summary>
-      /// Adds Infrastructure layer services to the service collection.
+      /// Adds Infrastructure layer services with Aspire integration.
       /// </summary>
-      /// <param name="configuration">The configuration.</param>
-      /// <returns>The service collection for chaining.</returns>
-      public IServiceCollection AddInfrastructure(IConfiguration configuration)
+      /// <returns>The host application builder for chaining.</returns>
+      public IHostApplicationBuilder AddInfrastructure()
       {
+         // Identity
+         builder.Services.AddHttpContextAccessor();
+         builder.Services.AddScoped<IUser, CurrentUser>();
+
          // Interceptors
-         services.AddScoped<AuditableEntityInterceptor>();
+         builder.Services.AddSingleton<AuditableEntityInterceptor>();
 
-         // DbContext (can be overridden by Aspire)
-         services.AddDbContext<ApplicationDbContext>((sp, options) =>
-         {
-            string? connectionString = configuration.GetConnectionString("DefaultConnection");
-            if (!string.IsNullOrEmpty(connectionString))
-            {
-               options.UseNpgsql(connectionString);
-            }
-
-            options.AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>());
-         });
+         // DbContext with Aspire PostgreSQL integration
+         builder.AddNpgsqlDbContext<ApplicationDbContext>("cleanaspire-db");
 
          // Register as IApplicationDbContext
-         services.AddScoped<IApplicationDbContext>(sp =>
+         builder.Services.AddScoped<IApplicationDbContext>(sp =>
              sp.GetRequiredService<ApplicationDbContext>());
 
-         // Caching
-         services.AddScoped<ICacheService, DistributedCacheService>();
+         // Redis caching with Aspire integration
+         builder.AddRedisDistributedCache("redis");
+         builder.Services.AddScoped<ICacheService, DistributedCacheService>();
 
-         return services;
+         return builder;
       }
    }
 }
