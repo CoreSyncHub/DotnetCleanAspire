@@ -225,7 +225,7 @@ csharp_preserve_single_line_statements = false
 ################# Code Analyzers #################
 ##################################################
 # Microsoft.CodeAnalysis.NetAnalyzers | Design
-dotnet_diagnostic.CA1000.severity = warning
+dotnet_diagnostic.CA1000.severity = none
 dotnet_diagnostic.CA1001.severity = warning
 dotnet_diagnostic.CA1002.severity = warning
 dotnet_diagnostic.CA1003.severity = none
@@ -243,10 +243,10 @@ dotnet_diagnostic.CA1024.severity = suggestion
 dotnet_diagnostic.CA1027.severity = suggestion
 dotnet_diagnostic.CA1028.severity = warning
 dotnet_diagnostic.CA1030.severity = none
-dotnet_diagnostic.CA1031.severity = suggestion
+dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA1032.severity = warning
 dotnet_diagnostic.CA1033.severity = warning
-dotnet_diagnostic.CA1034.severity = warning
+dotnet_diagnostic.CA1034.severity = silent
 dotnet_diagnostic.CA1036.severity = suggestion
 dotnet_diagnostic.CA1040.severity = none
 dotnet_diagnostic.CA1041.severity = error
@@ -319,7 +319,7 @@ dotnet_diagnostic.CA1700.severity = suggestion
 dotnet_diagnostic.CA1707.severity = error
 dotnet_diagnostic.CA1708.severity = suggestion
 dotnet_diagnostic.CA1710.severity = warning
-dotnet_diagnostic.CA1711.severity = warning
+dotnet_diagnostic.CA1711.severity = silent
 dotnet_diagnostic.CA1712.severity = error
 dotnet_diagnostic.CA1713.severity = warning
 dotnet_diagnostic.CA1714.severity = warning
@@ -337,7 +337,7 @@ dotnet_diagnostic.CA1802.severity = warning
 dotnet_diagnostic.CA1805.severity = warning
 dotnet_diagnostic.CA1806.severity = warning
 dotnet_diagnostic.CA1810.severity = warning
-dotnet_diagnostic.CA1812.severity = warning
+dotnet_diagnostic.CA1812.severity = silent
 dotnet_diagnostic.CA1813.severity = error
 dotnet_diagnostic.CA1814.severity = suggestion
 dotnet_diagnostic.CA1815.severity = warning
@@ -370,7 +370,7 @@ dotnet_diagnostic.CA1844.severity = warning
 dotnet_diagnostic.CA1845.severity = warning
 dotnet_diagnostic.CA1846.severity = warning
 dotnet_diagnostic.CA1847.severity = warning
-dotnet_diagnostic.CA1848.severity = suggestion
+dotnet_diagnostic.CA1848.severity = none
 dotnet_diagnostic.CA1849.severity = warning
 dotnet_diagnostic.CA1850.severity = none
 dotnet_diagnostic.CA1851.severity = warning
@@ -395,6 +395,7 @@ dotnet_diagnostic.CA1869.severity = warning
 dotnet_diagnostic.CA1870.severity = warning
 dotnet_diagnostic.CA1871.severity = warning
 dotnet_diagnostic.CA1872.severity = warning
+dotnet_diagnostic.CA1873.severity = silent
 
 # Microsoft.CodeAnalysis.NetAnalyzers | Reliability
 dotnet_diagnostic.CA2000.severity = suggestion

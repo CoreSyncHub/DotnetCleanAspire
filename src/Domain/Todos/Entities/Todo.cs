@@ -1,4 +1,5 @@
 using Domain.Todos.Enums;
+using Domain.Todos.Errors;
 using Domain.Todos.Events;
 using Domain.Todos.ValueObjects;
 
@@ -33,7 +34,7 @@ public sealed class Todo : AuditableAggregateRoot
    {
       if (Status == TodoStatus.Completed)
       {
-         return Result.Failure(new ResultError("Todo.AlreadyCompleted", "The todo is already completed.", ErrorType.Validation));
+         return Result.Failure(TodoErrors.AlreadyCompleted);
       }
 
       Status = TodoStatus.Completed;

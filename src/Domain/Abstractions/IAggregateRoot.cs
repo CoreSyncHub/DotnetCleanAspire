@@ -3,7 +3,7 @@ namespace Domain.Abstractions;
 /// <summary>
 /// Represents an aggregate root in the domain.
 /// </summary>
-public interface IAggregateRoot
+public interface IAggregateRoot : IEntity
 {
    /// <summary>
    /// Gets the domain events associated with this aggregate root.

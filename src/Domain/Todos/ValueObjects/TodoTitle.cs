@@ -1,3 +1,5 @@
+using Domain.Todos.Errors;
+
 namespace Domain.Todos.ValueObjects;
 
 public sealed class TodoTitle : ValueObject
@@ -13,12 +15,12 @@ public sealed class TodoTitle : ValueObject
    {
       if (string.IsNullOrWhiteSpace(value))
       {
-         return Result<TodoTitle>.Failure(new ResultError("TodoTitle.Empty", "Todo title cannot be empty.", ErrorType.Validation));
+         return Result<TodoTitle>.Failure(TodoErrors.TitleRequired);
       }
 
       if (value.Length > 100)
       {
-         return Result<TodoTitle>.Failure(new ResultError("TodoTitle.TooLong", "Todo title cannot exceed 100 characters.", ErrorType.Validation));
+         return Result<TodoTitle>.Failure(TodoErrors.TitleTooLong);
       }
 
       return Result<TodoTitle>.Success(new TodoTitle(value));

@@ -29,4 +29,10 @@ public abstract class Entity : IEntity, IEquatable<Entity>
    public override bool Equals(object? obj) => Equals(obj as Entity);
 
    public override int GetHashCode() => HashCode.Combine(GetType(), Id);
+
+   public static bool operator ==(Entity? left, Entity? right)
+      => left?.Equals(right) ?? (right is null);
+
+   public static bool operator !=(Entity? left, Entity? right)
+      => !(left == right);
 }
