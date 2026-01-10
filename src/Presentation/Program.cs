@@ -28,4 +28,6 @@ app.UseOpenApiDocumentation();
 app.MapHealthCheckEndpoints();
 app.MapEndpoints(versions);
 
+await app.MigrateDatabase();
+
 await app.RunAsync();

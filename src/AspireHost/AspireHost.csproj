@@ -1,10 +1,11 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.0.1">
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.0.1">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsAspireHost>true</IsAspireHost>
     <RootNamespace>AspireHost</RootNamespace>
     <AssemblyName>AspireHost</AssemblyName>
+    <UserSecretsId>820aca9b-9711-4803-a835-c8445071f21d</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,8 +3,8 @@
     {
       "type": "aspire",
       "request": "launch",
-      "name": "Aspire: Launch MyAppHost",
-      "program": "${workspaceFolder}/src/AppHost/AppHost.csproj"
+      "name": "Aspire: Launch App Host",
+      "program": "${workspaceFolder}/src/AspireHost/AspireHost.csproj"
     }
   ]
 }

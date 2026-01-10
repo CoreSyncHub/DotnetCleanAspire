@@ -1,3 +1,4 @@
+using Microsoft.OpenApi;
 using Presentation.Converters;
 using Presentation.Middleware;
 
@@ -30,11 +31,41 @@ internal static class ServiceExtensions
       {
          options.AddDocumentTransformer((document, context, cancellationToken) =>
            {
-             document.Info.Title = "Clean Aspire API";
-             document.Info.Version = "v1";
-             document.Info.Description = "A Clean Architecture template with .NET Aspire";
-             return Task.CompletedTask;
-          });
+              document.Info.Title = "Clean Aspire API";
+              document.Info.Version = "v1";
+              document.Info.Description = "A Clean Architecture template with .NET Aspire";
+
+              // Replace {version} placeholder with actual version in all paths
+              if (document.Paths is not null)
+              {
+                 var pathsToUpdate = document.Paths.ToList();
+                 document.Paths.Clear();
+
+                 foreach (KeyValuePair<string, IOpenApiPathItem> pathItem in pathsToUpdate)
+                 {
+                    string updatedPath = pathItem.Key.Replace("{version}", "1", StringComparison.Ordinal);
+                    document.Paths.Add(updatedPath, pathItem.Value);
+                 }
+              }
+
+              return Task.CompletedTask;
+           });
+
+         // Add operation transformer to remove version parameter from operations
+         options.AddOperationTransformer((operation, context, cancellationToken) =>
+           {
+              // Remove version parameter from operations
+              if (operation.Parameters is not null)
+              {
+                 IOpenApiParameter? versionParam = operation.Parameters.FirstOrDefault(p => p.Name == "version");
+                 if (versionParam is not null)
+                 {
+                    operation.Parameters.Remove(versionParam);
+                 }
+              }
+
+              return Task.CompletedTask;
+           });
       });
 
       services.AddEndpointsApiExplorer();
@@ -64,19 +95,19 @@ internal static class ServiceExtensions
          options.AddDefaultPolicy(policy =>
            {
               // Configure as needed - this is a permissive default for development
-             policy.AllowAnyOrigin()
-                     .AllowAnyMethod()
-                     .AllowAnyHeader();
-          });
+              policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+           });
 
          // Named policy for more restrictive scenarios
          options.AddPolicy("Strict", policy =>
            {
-             policy.SetIsOriginAllowedToAllowWildcardSubdomains()
-                     .AllowAnyMethod()
-                     .AllowAnyHeader()
-                     .AllowCredentials();
-          });
+              policy.SetIsOriginAllowedToAllowWildcardSubdomains()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+           });
       });
 
       return services;
@@ -89,8 +120,8 @@ internal static class ServiceExtensions
       {
          options.CustomizeProblemDetails = context =>
            {
-             context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
-          };
+              context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+           };
       });
 
       return services;

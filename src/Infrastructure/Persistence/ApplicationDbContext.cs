@@ -3,50 +3,22 @@ using Application.Abstractions.Persistence;
 using Domain.Todos.Entities;
 using Infrastructure.Extensions;
 using Infrastructure.Persistence.Interceptors;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Persistence;
 
 public sealed class ApplicationDbContext(
     DbContextOptions<ApplicationDbContext> options,
-    IDispatcher dispatcher,
-    AuditableEntityInterceptor auditableEntityInterceptor) : DbContext(options), IApplicationDbContext
+    AuditableEntityInterceptor auditableEntityInterceptor,
+    DomainEventDispatchInterceptor domainEventDispatchInterceptor) : DbContext(options), IApplicationDbContext
 {
    public DbSet<Todo> Todos => Set<Todo>();
-
-   public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-   {
-      // Collect domain events before saving
-      List<AggregateRoot> aggregateRoots = ChangeTracker.Entries<IAggregateRoot>()
-          .Select(e => e.Entity)
-          .OfType<AggregateRoot>()
-          .ToList();
-
-      List<IDomainEvent> domainEvents = aggregateRoots
-          .SelectMany(r => r.DomainEvents)
-          .ToList();
-
-      // Save changes
-      int result = await base.SaveChangesAsync(cancellationToken);
-
-      // Dispatch domain events after successful commit
-      foreach (IDomainEvent domainEvent in domainEvents)
-      {
-         await dispatcher.Publish(domainEvent, cancellationToken);
-      }
-
-      // Clear events from aggregate roots
-      foreach (AggregateRoot root in aggregateRoots)
-      {
-         root.ClearEvents();
-      }
-
-      return result;
-   }
 
    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
    {
       base.OnConfiguring(optionsBuilder);
-      optionsBuilder.AddInterceptors(auditableEntityInterceptor);
+      optionsBuilder.AddInterceptors(auditableEntityInterceptor, domainEventDispatchInterceptor);
    }
 
    protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,4 +1,4 @@
-using Presentation.Middleware;
+using Infrastructure.Extensions;
 
 namespace Presentation.Extensions;
 
@@ -23,7 +23,25 @@ internal static class ApplicationExtensions
       // CORS (configure policies in services)
       app.UseCors();
 
+      // Authentication & Authorization
+      app.UseAuthentication();
+      app.UseAuthorization();
+
       return app;
+   }
+
+   public static async Task MigrateDatabase(this WebApplication app)
+   {
+      if (app.Configuration.GetValue<bool>("Ef:MigrateOnStartup"))
+      {
+         ILogger logger = app.Services.GetRequiredService<ILogger<Program>>();
+         logger.LogInformation("Starting database migration...");
+         await app.Services.MigrateAsync(
+             seed: app.Configuration.GetValue<bool>("Ef:SeedOnStartup"),
+             app.Lifetime.ApplicationStopping
+         );
+         logger.LogInformation("Database migration completed");
+      }
    }
 
    /// <summary>

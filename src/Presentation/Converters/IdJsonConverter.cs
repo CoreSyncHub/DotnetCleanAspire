@@ -1,7 +1,3 @@
-using Domain.Abstractions;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
 namespace Presentation.Converters;
 
 internal sealed class IdJsonConverter : JsonConverter<Id>
