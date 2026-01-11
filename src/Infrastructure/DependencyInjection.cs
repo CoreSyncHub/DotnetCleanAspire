@@ -42,7 +42,6 @@ public static class InfrastructureDependencyInjection
          // Register as IApplicationDbContext
          builder.Services.AddScoped<IApplicationDbContext>(sp =>
              sp.GetRequiredService<ApplicationDbContext>());
-         builder.Services.AddScoped<ICacheService, DistributedCacheService>();
 
          // Redis caching with Aspire integration
          builder.AddRedisDistributedCache("redis");

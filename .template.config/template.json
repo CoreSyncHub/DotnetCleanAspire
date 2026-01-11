@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Victor Deleau",
+  "classifications": ["Web", "Aspire", "Clean Architecture"],
+  "identity": "CleanAspire.Template",
+  "name": ".NET Clean Architecture with Aspire",
+  "shortName": "clean-aspire",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "CleanAspire",
+  "preferNameDirectory": true,
+  "symbols": {},
+  "sources": []
+}

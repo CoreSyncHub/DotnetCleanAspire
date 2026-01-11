@@ -9,14 +9,16 @@ IResourceBuilder<PostgresServerResource> postgres = builder.AddPostgres("postgre
 IResourceBuilder<PostgresDatabaseResource> database = postgres.AddDatabase("cleanaspire-db");
 
 // Redis cache
-#pragma warning disable ASPIRECERTIFICATES001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable ASPIRECERTIFICATES001 // Disable certificate requirement for development purposes only. Remove this directive and `.WithoutHttpsCertificate()` calls for production use.
+
 IResourceBuilder<RedisResource> redis = builder.AddRedis("redis")
     .WithDataVolume("cleanaspire-redis-data")
 #if DEBUG
     .WithoutHttpsCertificate()
 #endif
     .WithRedisInsight(redisInsight => redisInsight.WithExplicitStart());
-#pragma warning restore ASPIRECERTIFICATES001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+#pragma warning restore ASPIRECERTIFICATES001
 
 // API project with references
 builder.AddProject<Projects.Presentation>("api")

@@ -14,6 +14,7 @@
   },
   "editor.rulers": [120],
   "files.associations": {
+    "*.json": "jsonc",
     "*.slnx": "xml"
   },
   "files.exclude": {
@@ -35,9 +36,5 @@
     "**/Thumbs.db": true,
     "**/bin/**": true,
     "**/obj/**": true
-  },
-  "sonarlint.connectedMode.project": {
-    "connectionId": "sonarqube-coresync",
-    "projectKey": "CoreSyncHub_DotnetCleanAspire_5f1ae745-b7bf-49e2-8d85-050da999de85"
   }
 }
