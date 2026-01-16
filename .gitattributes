@@ -26,9 +26,9 @@
 # Windows scripts
 *.bat       text eol=crlf
 
-Dockerfile  text eol=lf
+Dockerfile    text eol=lf
 .editorconfig text eol=lf
-.vscode/*   text eol=lf
+.vscode/*     text eol=lf
 
 ###############################################################################
 # Binary files (do not diff or attempt normalization)
