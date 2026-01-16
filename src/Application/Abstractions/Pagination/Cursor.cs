@@ -71,7 +71,7 @@ public static class Cursor
    public static Id? DecodeId(string? cursor)
    {
       JsonElement[]? values = Decode(cursor);
-      if (values is null || values.Length == 0)
+      if (values is null || values.Length is 0)
          return null;
 
       string? idString = values[0].GetString();

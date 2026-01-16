@@ -33,7 +33,7 @@ public sealed class AuditableEntityInterceptor(IUser user) : SaveChangesIntercep
          if (entry.State is not (EntityState.Added or EntityState.Modified) && !entry.HasChangedOwnedEntities())
             continue;
 
-         if (entry.State == EntityState.Added)
+         if (entry.State is EntityState.Added)
          {
             entry.Property(nameof(IAuditableEntity.Created)).CurrentValue = utcNow;
             entry.Property(nameof(IAuditableEntity.CreatedBy)).CurrentValue = user.Id;

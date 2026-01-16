@@ -57,7 +57,7 @@ internal static class ServiceExtensions
               // Remove version parameter from operations
               if (operation.Parameters is not null)
               {
-                 IOpenApiParameter? versionParam = operation.Parameters.FirstOrDefault(p => p.Name == "version");
+                 IOpenApiParameter? versionParam = operation.Parameters.FirstOrDefault(p => p.Name is "version");
                  if (versionParam is not null)
                  {
                     operation.Parameters.Remove(versionParam);

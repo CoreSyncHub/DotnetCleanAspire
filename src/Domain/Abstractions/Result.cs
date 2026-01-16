@@ -17,7 +17,7 @@ public enum SuccessType
    NoContent
 }
 
-#pragma warning disable CA1815 // Override equals and gethashcode are not necessary for this struct
+#pragma warning disable CA1815 // Override Equals and GetHashCode are not necessary for this struct
 
 public readonly struct Unit
 {
@@ -32,29 +32,40 @@ public readonly record struct Result
 {
    public static Result<Unit> Success(SuccessType type = SuccessType.Ok) => Result<Unit>.Success(Unit.Value, type);
    public static Result<T> Success<T>(T value, SuccessType type = SuccessType.Ok) => Result<T>.Success(value, type);
+
    public static Result<Unit> Failure(ResultError error) => Result<Unit>.Failure(error);
    public static Result<T> Failure<T>(ResultError error) => Result<T>.Failure(error);
 }
 
-public readonly record struct Result<T>
+public readonly record struct Result<T> : IResult
 {
    public bool IsSuccess { get; }
    public bool IsFailure => !IsSuccess;
-   public T? Value { get; }
-   public ResultError? Error { get; }
+   private readonly T? _value;
+   private readonly ResultError? _error;
+
+   public T Value => IsSuccess
+        ? _value!
+        : throw new InvalidOperationException("No value for failure result");
+
+   public ResultError Error => IsFailure
+       ? _error!
+       : throw new InvalidOperationException("No error for success result");
    public SuccessType SuccessType { get; }
 
-   private Result(T value, SuccessType successType = SuccessType.Ok)
+   private Result(T value, SuccessType successType)
    {
       IsSuccess = true;
-      Value = value;
+      _value = value;
+      _error = null;
       SuccessType = successType;
    }
 
    private Result(ResultError error)
    {
       IsSuccess = false;
-      Error = error;
+      _value = default;
+      _error = error;
       SuccessType = default;
    }
 
@@ -65,11 +76,24 @@ public readonly record struct Result<T>
    public static implicit operator Result<T>(ResultError error) => Failure(error);
 
    public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<ResultError, TResult> onFailure)
-       => IsSuccess ? onSuccess(Value!) : onFailure(Error!);
+       => IsSuccess ? onSuccess(Value) : onFailure(Error);
 
    public Result<TNew> Map<TNew>(Func<T, TNew> mapper)
-       => IsSuccess ? Result<TNew>.Success(mapper(Value!), SuccessType) : Result<TNew>.Failure(Error!);
+       => IsSuccess ? Result<TNew>.Success(mapper(Value), SuccessType) : Result<TNew>.Failure(Error);
 
    public Result<TNew> Bind<TNew>(Func<T, Result<TNew>> binder)
-       => IsSuccess ? binder(Value!) : Result<TNew>.Failure(Error!);
+       => IsSuccess ? binder(Value) : Result<TNew>.Failure(Error);
+
+   public Result<TNew> Pipe<TNew>(Func<T, TNew> pipe)
+    => IsSuccess
+        ? Result<TNew>.Success(pipe(Value), SuccessType)
+        : Result<TNew>.Failure(Error);
+
+   public Result<T> Tap(Action<T> action)
+   {
+      if (IsSuccess)
+         action(Value);
+
+      return this;
+   }
 }
