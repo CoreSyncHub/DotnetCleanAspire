@@ -25,25 +25,28 @@ public sealed class Todo : AuditableAggregateRoot
 
    public static Result<Todo> Create(TodoTitle title, TodoStatus status)
    {
-      var todo = new Todo(title, status);
+      Todo todo = new(title, status);
       todo.Raise(new TodoCreatedEvent(todo.Id, title.Value));
       return Result<Todo>.Success(todo);
    }
 
    public Result<Unit> MarkAsCompleted()
    {
-      if (Status == TodoStatus.Completed)
+      if (Status is TodoStatus.Completed)
       {
          return Result.Failure(TodoErrors.AlreadyCompleted);
       }
 
       Status = TodoStatus.Completed;
+      Raise(new TodoCompletedEvent(Id));
       return Result.Success();
    }
 
    public Result<Unit> UpdateTitle(TodoTitle newTitle)
    {
+      string oldTitle = Title.Value;
       Title = newTitle;
+      Raise(new TodoTitleUpdatedEvent(Id, oldTitle, newTitle.Value));
       return Result.Success();
    }
 }
