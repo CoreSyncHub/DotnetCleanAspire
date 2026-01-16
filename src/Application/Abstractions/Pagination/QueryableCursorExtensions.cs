@@ -30,7 +30,7 @@ internal static class QueryableCursorExtensions
          {
             Id cursorValue = cursorId.Value;
 
-            if (request.Direction == CursorDirection.Forward)
+            if (request.Direction is CursorDirection.Forward)
             {
                // Get items after cursor (Id > cursorId)
                filteredQuery = query
@@ -64,7 +64,7 @@ internal static class QueryableCursorExtensions
          }
 
          // Reverse if navigating backward
-         if (request.Direction == CursorDirection.Backward)
+         if (request.Direction is CursorDirection.Backward)
          {
             items.Reverse();
          }
@@ -78,7 +78,7 @@ internal static class QueryableCursorExtensions
             Id firstId = compiledIdSelector(items[0]);
             Id lastId = compiledIdSelector(items[^1]);
 
-            if (request.Direction == CursorDirection.Forward)
+            if (request.Direction is CursorDirection.Forward)
             {
                if (hasMore)
                   nextCursor = Cursor.Encode(lastId);
@@ -132,7 +132,7 @@ internal static class QueryableCursorExtensions
          {
             (Id cursorId, TSortKey? cursorSortValue) = cursorData.Value;
 
-            if (request.Direction == CursorDirection.Forward)
+            if (request.Direction is CursorDirection.Forward)
             {
                if (descending)
                {
@@ -196,7 +196,7 @@ internal static class QueryableCursorExtensions
          }
 
          // Reverse if navigating backward
-         if (request.Direction == CursorDirection.Backward)
+         if (request.Direction is CursorDirection.Backward)
          {
             items.Reverse();
          }
@@ -213,7 +213,7 @@ internal static class QueryableCursorExtensions
             string firstCursor = Cursor.Encode(compiledIdSelector(first), compiledSortKeySelector(first));
             string lastCursor = Cursor.Encode(compiledIdSelector(last), compiledSortKeySelector(last));
 
-            if (request.Direction == CursorDirection.Forward)
+            if (request.Direction is CursorDirection.Forward)
             {
                if (hasMore)
                   nextCursor = lastCursor;

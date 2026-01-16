@@ -1,26 +1,27 @@
 using Presentation.Abstractions;
+using HttpResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace Presentation.Extensions;
 
 /// <summary>
-/// Extensions for converting <see cref="Result{T}"/> to <see cref="IResult"/>.
+/// Extensions for converting <see cref="Result{T}"/> to <see cref="HttpResult"/>.
 /// </summary>
 internal static class ResultExtensions
 {
    /// <summary>
-   /// Converts a <see cref="Result{T}"/> to an appropriate <see cref="IResult"/>.
+   /// Converts a <see cref="Result{T}"/> to an appropriate <see cref="HttpResult"/>.
    /// </summary>
    /// <param name="result">The result to convert.</param>
    /// <param name="transform">Optional transformation function for the value.</param>
    /// <returns>An HTTP result representing the outcome.</returns>
-   public static IResult ToHttpResult<T>(this Result<T> result, Func<T, object?>? transform = null)
+   public static HttpResult ToHttpResult<T>(this Result<T> result, Func<T, object?>? transform = null)
    {
       return result.Match(
           onSuccess: value => ToSuccessResult(value, result.SuccessType, transform),
           onFailure: ToErrorResult);
    }
 
-   private static IResult ToSuccessResult<T>(T value, SuccessType successType, Func<T, object?>? transform)
+   private static HttpResult ToSuccessResult<T>(T value, SuccessType successType, Func<T, object?>? transform)
    {
       object? responseData = transform is not null ? transform(value) : value;
 
@@ -32,7 +33,7 @@ internal static class ResultExtensions
       };
    }
 
-   private static IResult ToErrorResult(ResultError error)
+   private static HttpResult ToErrorResult(ResultError error)
    {
       int statusCode = error.Type switch
       {
