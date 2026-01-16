@@ -1,7 +1,7 @@
+using Application.Features.Todos.Cache;
 using Application.Features.Todos.Dtos;
 using Domain.Todos.Entities;
 using Domain.Todos.Errors;
-using System.Text.Json.Serialization;
 
 namespace Application.Features.Todos.Queries.GetTodoById;
 
@@ -11,7 +11,7 @@ namespace Application.Features.Todos.Queries.GetTodoById;
 /// <param name="TodoId">The ID of the todo to retrieve.</param>
 public sealed record GetTodoByIdQuery(Id Id) : IQuery<TodoDto>, ICacheable
 {
-   public string CacheKey => $"todos:{Id}";
+   public ICacheKey CacheKey => TodoCacheKeys.ById(Id);
    public TimeSpan CacheDuration => TimeSpan.FromMinutes(5);
 }
 

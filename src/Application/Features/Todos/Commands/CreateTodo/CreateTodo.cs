@@ -1,3 +1,4 @@
+using Application.Features.Todos.Cache;
 using Application.Features.Todos.Dtos;
 using Domain.Todos.Entities;
 using Domain.Todos.Enums;
@@ -9,7 +10,10 @@ namespace Application.Features.Todos.Commands.CreateTodo;
 /// Command to create a new Todo.
 /// </summary>
 /// <param name="Title">The title of the todo.</param>
-public sealed record CreateTodoCommand(string Title) : ICommand<CreateTodoDto>;
+public sealed record CreateTodoCommand(string Title) : ICommand<CreateTodoDto>, ICacheInvalidating
+{
+   public IReadOnlyCollection<string> FeaturesToInvalidate => [TodoCacheKeys.FeatureTag];
+}
 
 /// <summary>
 /// Handler for creating a new Todo.
@@ -21,20 +25,15 @@ internal sealed class CreateTodoCommandHandler(IApplicationDbContext dbContext) 
        CancellationToken cancellationToken = default)
    {
       // Create value object
-      Result<TodoTitle> titleResult = TodoTitle.Create(request.Title);
-      if (titleResult.IsFailure)
-      {
-         return titleResult.Error!;
-      }
+      Result<Todo> todoResult = TodoTitle.Create(request.Title)
+         .Bind(title => Todo.Create(title, TodoStatus.Pending));
 
-      // Create entity
-      Result<Todo> todoResult = Todo.Create(titleResult.Value!, TodoStatus.Pending);
       if (todoResult.IsFailure)
       {
-         return todoResult.Error!;
+         return Result<CreateTodoDto>.Failure(todoResult.Error);
       }
 
-      Todo todo = todoResult.Value!;
+      Todo todo = todoResult.Value;
 
       // Persist
       dbContext.Todos.Add(todo);
