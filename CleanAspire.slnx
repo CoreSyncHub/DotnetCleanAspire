@@ -11,13 +11,20 @@
     <File Path=".github/copilot-instructions.md" />
   </Folder>
   <Folder Name="/Aspire/">
-    <Project Path="src/AspireHost/AspireHost.csproj" Type="Classic C#" />
-    <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" Type="Classic C#" />
+    <Project Path="src/AspireHost/AspireHost.csproj" Type="C#" />
+    <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" Type="C#" />
   </Folder>
   <Folder Name="/Source/">
-    <Project Path="src/Application/Application.csproj" Type="Classic C#" />
-    <Project Path="src/Domain/Domain.csproj" Type="Classic C#" />
-    <Project Path="src/Infrastructure/Infrastructure.csproj" Type="Classic C#" />
-    <Project Path="src/Presentation/Presentation.csproj" Type="Classic C#" />
+    <Project Path="src/Application/Application.csproj" Type="C#" />
+    <Project Path="src/Domain/Domain.csproj" Type="C#" />
+    <Project Path="src/Infrastructure/Infrastructure.csproj" Type="C#" />
+    <Project Path="src/Presentation/Presentation.csproj" Type="C#" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Domain.UnitTests/Domain.UnitTests.csproj" Type="C#" />
+    <Project Path="tests/Application.UnitTests/Application.UnitTests.csproj" Type="C#" />
+    <Project Path="tests/Application.IntegrationTests/Application.IntegrationTests.csproj" Type="C#" />
+    <Project Path="tests/Infrastructure.IntegrationTests/Infrastructure.IntegrationTests.csproj" Type="C#" />
+    <Project Path="tests/Infrastructure.UnitTests/Infrastructure.UnitTests.csproj" />
   </Folder>
 </Solution>
