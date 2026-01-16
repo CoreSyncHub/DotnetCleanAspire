@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -13,10 +14,14 @@ public static class ApplicationDependencyInjection
       /// <summary>
       /// Adds Application layer services to the service collection.
       /// </summary>
+      /// <param name="configuration">The configuration to bind CacheOptions from.</param>
       /// <returns>The service collection for chaining.</returns>
-      public IServiceCollection AddApplication()
+      public IServiceCollection AddApplication(IConfiguration configuration)
       {
-         Assembly assembly = Assembly.GetExecutingAssembly();
+         var assembly = Assembly.GetExecutingAssembly();
+
+         // Register cache options
+         services.Configure<CacheOptions>(configuration.GetSection(CacheOptions.SectionName));
 
          // Register Dispatcher
          services.AddScoped<IDispatcher, Dispatcher>();
@@ -31,6 +36,7 @@ public static class ApplicationDependencyInjection
          services.AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>));
          services.AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
          services.AddScoped(typeof(IPipelineBehavior<>), typeof(CachingBehavior<>));
+         services.AddScoped(typeof(IPipelineBehavior<>), typeof(CacheInvalidationBehavior<>));
 
          return services;
       }
