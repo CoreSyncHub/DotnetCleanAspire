@@ -6,6 +6,7 @@ using Application.Features.Todos.Queries.GetTodoById;
 using Application.Features.Todos.Queries.GetTodos;
 using Presentation.Abstractions;
 using Presentation.Extensions;
+using HttpResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace Presentation.Endpoints;
 
@@ -57,7 +58,7 @@ internal sealed class TodoEndpoints : IEndpoint
     /// <summary>
     /// Creates a new todo.
     /// </summary>
-    private static async Task<IResult> CreateTodo(
+    private static async Task<HttpResult> CreateTodo(
         CreateTodoCommand command,
         IDispatcher dispatcher,
         CancellationToken cancellationToken
@@ -70,7 +71,7 @@ internal sealed class TodoEndpoints : IEndpoint
         );
     }
 
-    private static async Task<IResult> GetTodoById(
+    private static async Task<HttpResult> GetTodoById(
         Id id,
         IDispatcher dispatcher,
         CancellationToken cancellationToken
@@ -82,7 +83,7 @@ internal sealed class TodoEndpoints : IEndpoint
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetTodos(
+    private static async Task<HttpResult> GetTodos(
         IDispatcher dispatcher,
         string? cursor = null,
         int pageSize = 20,
@@ -98,7 +99,7 @@ internal sealed class TodoEndpoints : IEndpoint
 
         CursorPageRequest pagination = cursor is null
             ? CursorPageRequest.First(pageSize)
-            : cursorDirection == CursorDirection.Forward
+            : cursorDirection is CursorDirection.Forward
                 ? CursorPageRequest.Next(cursor, pageSize)
                 : CursorPageRequest.Previous(cursor, pageSize);
 
@@ -114,7 +115,7 @@ internal sealed class TodoEndpoints : IEndpoint
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> CompleteTodo(
+    private static async Task<HttpResult> CompleteTodo(
         Id id,
         IDispatcher dispatcher,
         CancellationToken cancellationToken)

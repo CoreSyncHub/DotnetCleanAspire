@@ -1,5 +1,7 @@
 using Application;
 using Infrastructure;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using Presentation.Extensions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -7,8 +9,19 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // Add Aspire service defaults (telemetry, health checks, etc.)
 builder.AddServiceDefaults();
 
+// Configure OpenTelemetry for cache observability
+builder.Services.ConfigureOpenTelemetryMeterProvider(metrics =>
+{
+    metrics.AddMeter("DotnetCleanAspire.Caching");
+});
+
+builder.Services.ConfigureOpenTelemetryTracerProvider(tracing =>
+{
+    tracing.AddSource("DotnetCleanAspire.Caching");
+});
+
 // Add application layers
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 builder.AddInfrastructure();
 builder.Services.AddPresentation();
 
@@ -26,6 +39,13 @@ app.ConfigurePipeline();
 // Map endpoints
 app.UseOpenApiDocumentation();
 app.MapHealthCheckEndpoints();
+
+// Only map Prometheus endpoint if not in Testing environment
+if (!app.Environment.IsEnvironment("Testing"))
+{
+   app.MapPrometheusScrapingEndpoint();
+}
+
 app.MapEndpoints(versions);
 
 await app.MigrateDatabase();
