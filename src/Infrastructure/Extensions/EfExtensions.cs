@@ -1,6 +1,5 @@
 using Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 
 namespace Infrastructure.Extensions;
 

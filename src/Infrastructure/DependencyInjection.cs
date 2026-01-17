@@ -30,9 +30,18 @@ public static class InfrastructureDependencyInjection
       {
          // Identity
          builder.AddAuthenticationConfiguration();
-         builder.Services.AddHttpContextAccessor();
-         builder.Services.AddScoped<IUser, CurrentUser>();
 
+         // Persistence
+         builder.AddPersistence();
+
+         // Caching
+         builder.AddCaching();
+
+         return builder;
+      }
+
+      private void AddPersistence()
+      {
          // Interceptors (registered as scoped so they're injected into DbContext)
          builder.Services.AddScoped<AuditableEntityInterceptor>();
          builder.Services.AddScoped<DomainEventDispatchInterceptor>();
@@ -43,7 +52,10 @@ public static class InfrastructureDependencyInjection
          // Register as IApplicationDbContext
          builder.Services.AddScoped<IApplicationDbContext>(sp =>
              sp.GetRequiredService<ApplicationDbContext>());
+      }
 
+      private void AddCaching()
+      {
          // Redis caching with Aspire integration
          builder.AddRedisDistributedCache("redis");
 
@@ -58,8 +70,6 @@ public static class InfrastructureDependencyInjection
          builder.Services.AddSingleton<ICacheVersionResolver, CacheVersionResolver>();
 
          builder.Services.AddScoped<ICacheService, DistributedCacheService>();
-
-         return builder;
       }
 
       private void AddAuthenticationConfiguration()
@@ -101,6 +111,8 @@ public static class InfrastructureDependencyInjection
          });
 
          builder.Services.AddAuthorization();
+         builder.Services.AddHttpContextAccessor();
+         builder.Services.AddScoped<IUser, CurrentUser>();
       }
    }
 }

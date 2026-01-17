@@ -12,7 +12,7 @@ namespace Application.Features.Todos.Queries.GetTodoById;
 public sealed record GetTodoByIdQuery(Id Id) : IQuery<TodoDto>, ICacheable
 {
    public ICacheKey CacheKey => TodoCacheKeys.ById(Id);
-   public TimeSpan CacheDuration => TimeSpan.FromMinutes(5);
+   public static TimeSpan CacheDuration => TimeSpan.FromMinutes(5);
 }
 
 /// <summary>

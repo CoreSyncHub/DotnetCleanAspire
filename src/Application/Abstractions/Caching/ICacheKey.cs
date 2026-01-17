@@ -13,8 +13,6 @@ public interface ICacheKey
 
     /// <summary>
     /// Logical key used for caching (e.g., "42").
-    /// Can optionally include wildcards (e.g., "42:*") for pattern-based entries.
-    /// Note: Wildcards are not automatically expanded when calling RemoveAsync.
     /// Use feature-level invalidation for O(1) removal of multiple entries.
     /// </summary>
     string Value { get; }

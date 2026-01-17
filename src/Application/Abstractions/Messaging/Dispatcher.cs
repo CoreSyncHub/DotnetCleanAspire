@@ -11,6 +11,7 @@ public sealed class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
 {
     private static readonly ConcurrentDictionary<Type, Type> HandlerTypeCache = new();
 
+    /// <inheritdoc/>
     public async Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -46,6 +47,7 @@ public sealed class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
         return await pipeline();
     }
 
+    /// <inheritdoc/>
     public async Task Publish<TEvent>(TEvent domainEvent, CancellationToken cancellationToken = default)
         where TEvent : IDomainEvent
     {

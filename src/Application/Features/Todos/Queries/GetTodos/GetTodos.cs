@@ -6,11 +6,9 @@ namespace Application.Features.Todos.Queries.GetTodos;
 /// <summary>
 /// Query to get a paginated list of Todos.
 /// </summary>
-public sealed record GetTodosQuery : IQuery<CursorPageResponse<TodoDto>>
+public sealed record GetTodosQuery : IPaginatedQuery<TodoDto>
 {
-    /// <summary>
-    /// The pagination request.
-    /// </summary>
+    /// <inheritdoc />
     public CursorPageRequest Pagination { get; init; } = CursorPageRequest.First();
 
     /// <summary>
