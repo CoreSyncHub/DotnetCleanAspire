@@ -9,11 +9,33 @@ internal static class WebApplicationExtensions
 {
    extension(WebApplication app)
    {
+      public async Task StartAsync()
+      {
+         ApiVersionSet versions = app.CreateApiVersionSet();
+
+         app
+            .ConfigureMiddlewarePipeline()
+            .UseOpenApiDocumentation()
+            .MapHealthCheckEndpoints()
+            .MapEndpoints(versions)
+            .MapObservabilityEndpoints();
+
+         await app.ExecuteDatabaseMigrations();
+         await app.RunAsync();
+      }
+
+      private ApiVersionSet CreateApiVersionSet()
+      {
+         return app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .ReportApiVersions()
+            .Build();
+      }
+
       /// <summary>
       /// Configures the middleware pipeline for the web application.
       /// </summary>
-      /// <returns></returns>
-      public WebApplication ConfigureMiddlewarePipeline()
+      private WebApplication ConfigureMiddlewarePipeline()
       {
          // Exception handling
          app.UseExceptionHandler();
@@ -24,6 +46,9 @@ internal static class WebApplicationExtensions
          // CORS (configure policies in services)
          app.UseCors();
 
+         // Rate limiting
+         app.UseRateLimiter();
+
          // Authentication & Authorization
          app.UseAuthentication();
          app.UseAuthorization();
@@ -32,26 +57,9 @@ internal static class WebApplicationExtensions
       }
 
       /// <summary>
-      /// Migrates the database on application startup if configured to do so.
-      /// </summary>
-      public async Task MigrateDatabase()
-      {
-         if (app.Configuration.GetValue<bool>("Ef:MigrateOnStartup"))
-         {
-            ILogger logger = app.Services.GetRequiredService<ILogger<Program>>();
-            logger.LogInformation("Starting database migration...");
-            await app.Services.MigrateAsync(
-               seed: app.Configuration.GetValue<bool>("Ef:SeedOnStartup"),
-               app.Lifetime.ApplicationStopping
-            );
-            logger.LogInformation("Database migration completed");
-         }
-      }
-
-      /// <summary>
       /// Configures OpenAPI/Swagger documentation endpoints.
       /// </summary>
-      public WebApplication UseOpenApiDocumentation()
+      private WebApplication UseOpenApiDocumentation()
       {
          if (app.Environment.IsDevelopment())
          {
@@ -70,7 +78,7 @@ internal static class WebApplicationExtensions
       /// <summary>
       /// Maps health check endpoints.
       /// </summary>
-      public WebApplication MapHealthCheckEndpoints()
+      private WebApplication MapHealthCheckEndpoints()
       {
          app.MapHealthChecks("/health");
          app.MapHealthChecks("/alive", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
@@ -79,6 +87,33 @@ internal static class WebApplicationExtensions
          });
 
          return app;
+      }
+
+      private WebApplication MapObservabilityEndpoints()
+      {
+         if (!app.Environment.IsEnvironment("Testing"))
+         {
+            app.MapPrometheusScrapingEndpoint();
+         }
+
+         return app;
+      }
+
+      /// <summary>
+      /// Migrates the database on application startup if configured to do so.
+      /// </summary>
+      private async Task ExecuteDatabaseMigrations()
+      {
+         if (app.Configuration.GetValue<bool>("Ef:MigrateOnStartup"))
+         {
+            ILogger logger = app.Services.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Starting database migration...");
+            await app.Services.MigrateAsync(
+               seed: app.Configuration.GetValue<bool>("Ef:SeedOnStartup"),
+               app.Lifetime.ApplicationStopping
+            );
+            logger.LogInformation("Database migration completed");
+         }
       }
    }
 }
