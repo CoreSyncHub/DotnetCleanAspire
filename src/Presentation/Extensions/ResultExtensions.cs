@@ -8,17 +8,20 @@ namespace Presentation.Extensions;
 /// </summary>
 internal static class ResultExtensions
 {
-   /// <summary>
-   /// Converts a <see cref="Result{T}"/> to an appropriate <see cref="HttpResult"/>.
-   /// </summary>
-   /// <param name="result">The result to convert.</param>
-   /// <param name="transform">Optional transformation function for the value.</param>
-   /// <returns>An HTTP result representing the outcome.</returns>
-   public static HttpResult ToHttpResult<T>(this Result<T> result, Func<T, object?>? transform = null)
+   extension<T>(Result<T> result)
    {
-      return result.Match(
-          onSuccess: value => ToSuccessResult(value, result.SuccessType, transform),
-          onFailure: ToErrorResult);
+      /// <summary>
+      /// Converts a <see cref="Result{T}"/> to an appropriate <see cref="HttpResult"/>.
+      /// </summary>
+      /// <param name="result">The result to convert.</param>
+      /// <param name="transform">Optional transformation function for the value.</param>
+      /// <returns>An HTTP result representing the outcome.</returns>
+      public HttpResult ToHttpResult(Func<T, object?>? transform = null)
+      {
+         return result.Match(
+            onSuccess: value => ToSuccessResult(value, result.SuccessType, transform),
+            onFailure: ToErrorResult);
+      }
    }
 
    private static HttpResult ToSuccessResult<T>(T value, SuccessType successType, Func<T, object?>? transform)

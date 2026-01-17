@@ -34,7 +34,7 @@ ApiVersionSet versions = app.NewApiVersionSet()
     .Build();
 
 // Configure middleware pipeline
-app.ConfigurePipeline();
+app.ConfigureMiddlewarePipeline();
 
 // Map endpoints
 app.UseOpenApiDocumentation();
@@ -43,7 +43,7 @@ app.MapHealthCheckEndpoints();
 // Only map Prometheus endpoint if not in Testing environment
 if (!app.Environment.IsEnvironment("Testing"))
 {
-   app.MapPrometheusScrapingEndpoint();
+    app.MapPrometheusScrapingEndpoint();
 }
 
 app.MapEndpoints(versions);

@@ -9,133 +9,136 @@ namespace Presentation.Extensions;
 /// </summary>
 internal static class ServiceExtensions
 {
-   /// <summary>
-   /// Adds presentation layer services including OpenAPI, versioning, and CORS.
-   /// </summary>
-   /// <param name="services">The service collection.</param>
-   /// <returns>The service collection for chaining.</returns>
-   public static IServiceCollection AddPresentation(this IServiceCollection services)
+   extension(IServiceCollection services)
    {
-      services.AddOpenApiDocumentation();
-      services.AddApiVersioningConfiguration();
-      services.AddCorsConfiguration();
-      services.AddExceptionHandling();
-      services.ConfigureJsonOptions();
-
-      return services;
-   }
-
-   private static IServiceCollection AddOpenApiDocumentation(this IServiceCollection services)
-   {
-      services.AddOpenApi(options =>
+      /// <summary>
+      /// Adds presentation layer services including OpenAPI, versioning, and CORS.
+      /// </summary>
+      /// <param name="services">The service collection.</param>
+      /// <returns>The service collection for chaining.</returns>
+      public IServiceCollection AddPresentation()
       {
-         options.AddDocumentTransformer((document, context, cancellationToken) =>
-           {
-              document.Info.Title = "Clean Aspire API";
-              document.Info.Version = "v1";
-              document.Info.Description = "A Clean Architecture template with .NET Aspire";
+         services.AddOpenApiDocumentation();
+         services.AddApiVersioningConfiguration();
+         services.AddCorsConfiguration();
+         services.AddExceptionHandling();
+         services.ConfigureJsonOptions();
 
-              // Replace {version} placeholder with actual version in all paths
-              if (document.Paths is not null)
+         return services;
+      }
+
+      private IServiceCollection AddOpenApiDocumentation()
+      {
+         services.AddOpenApi(options =>
+         {
+            options.AddDocumentTransformer((document, context, cancellationToken) =>
               {
-                 var pathsToUpdate = document.Paths.ToList();
-                 document.Paths.Clear();
+                 document.Info.Title = "Clean Aspire API";
+                 document.Info.Version = "v1";
+                 document.Info.Description = "A Clean Architecture template with .NET Aspire";
 
-                 foreach (KeyValuePair<string, IOpenApiPathItem> pathItem in pathsToUpdate)
+                 // Replace {version} placeholder with actual version in all paths
+                 if (document.Paths is not null)
                  {
-                    string updatedPath = pathItem.Key.Replace("{version}", "1", StringComparison.Ordinal);
-                    document.Paths.Add(updatedPath, pathItem.Value);
+                    var pathsToUpdate = document.Paths.ToList();
+                    document.Paths.Clear();
+
+                    foreach (KeyValuePair<string, IOpenApiPathItem> pathItem in pathsToUpdate)
+                    {
+                       string updatedPath = pathItem.Key.Replace("{version}", "1", StringComparison.Ordinal);
+                       document.Paths.Add(updatedPath, pathItem.Value);
+                    }
                  }
-              }
 
-              return Task.CompletedTask;
-           });
+                 return Task.CompletedTask;
+              });
 
-         // Add operation transformer to remove version parameter from operations
-         options.AddOperationTransformer((operation, context, cancellationToken) =>
-           {
-              // Remove version parameter from operations
-              if (operation.Parameters is not null)
+            // Add operation transformer to remove version parameter from operations
+            options.AddOperationTransformer((operation, context, cancellationToken) =>
               {
-                 IOpenApiParameter? versionParam = operation.Parameters.FirstOrDefault(p => p.Name is "version");
-                 if (versionParam is not null)
+                 // Remove version parameter from operations
+                 if (operation.Parameters is not null)
                  {
-                    operation.Parameters.Remove(versionParam);
+                    IOpenApiParameter? versionParam = operation.Parameters.FirstOrDefault(p => p.Name is "version");
+                    if (versionParam is not null)
+                    {
+                       operation.Parameters.Remove(versionParam);
+                    }
                  }
-              }
 
-              return Task.CompletedTask;
-           });
-      });
+                 return Task.CompletedTask;
+              });
+         });
 
-      services.AddEndpointsApiExplorer();
+         services.AddEndpointsApiExplorer();
 
-      return services;
-   }
+         return services;
+      }
 
-   private static IServiceCollection AddApiVersioningConfiguration(this IServiceCollection services)
-   {
-      services.AddApiVersioning(options =>
+      private IServiceCollection AddApiVersioningConfiguration()
       {
-         options.DefaultApiVersion = new ApiVersion(1, 0);
-         options.AssumeDefaultVersionWhenUnspecified = true;
-         options.ReportApiVersions = true;
-         options.ApiVersionReader = ApiVersionReader.Combine(
-               new UrlSegmentApiVersionReader(),
-               new HeaderApiVersionReader("X-Api-Version"));
-      });
+         services.AddApiVersioning(options =>
+         {
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = ApiVersionReader.Combine(
+                  new UrlSegmentApiVersionReader(),
+                  new HeaderApiVersionReader("X-Api-Version"));
+         });
 
-      return services;
-   }
+         return services;
+      }
 
-   private static IServiceCollection AddCorsConfiguration(this IServiceCollection services)
-   {
-      services.AddCors(options =>
+      private IServiceCollection AddCorsConfiguration()
       {
-         options.AddDefaultPolicy(policy =>
-           {
-              // Configure as needed - this is a permissive default for development
-              policy.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
-           });
+         services.AddCors(options =>
+         {
+            options.AddDefaultPolicy(policy =>
+              {
+                 // Configure as needed - this is a permissive default for development
+                 policy.AllowAnyOrigin()
+                         .AllowAnyMethod()
+                         .AllowAnyHeader();
+              });
 
-         // Named policy for more restrictive scenarios
-         options.AddPolicy("Strict", policy =>
-           {
-              policy.SetIsOriginAllowedToAllowWildcardSubdomains()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-           });
-      });
+            // Named policy for more restrictive scenarios
+            options.AddPolicy("Strict", policy =>
+              {
+                 policy.SetIsOriginAllowedToAllowWildcardSubdomains()
+                         .AllowAnyMethod()
+                         .AllowAnyHeader()
+                         .AllowCredentials();
+              });
+         });
 
-      return services;
-   }
+         return services;
+      }
 
-   private static IServiceCollection AddExceptionHandling(this IServiceCollection services)
-   {
-      services.AddExceptionHandler<GlobalExceptionHandler>();
-      services.AddProblemDetails(options =>
+      private IServiceCollection AddExceptionHandling()
       {
-         options.CustomizeProblemDetails = context =>
-           {
-              context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
-           };
-      });
+         services.AddExceptionHandler<GlobalExceptionHandler>();
+         services.AddProblemDetails(options =>
+         {
+            options.CustomizeProblemDetails = context =>
+              {
+                 context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+              };
+         });
 
-      return services;
-   }
+         return services;
+      }
 
-   private static IServiceCollection ConfigureJsonOptions(this IServiceCollection services)
-   {
-      services.ConfigureHttpJsonOptions(options =>
+      private IServiceCollection ConfigureJsonOptions()
       {
-         options.SerializerOptions.Converters.Add(new IdJsonConverter());
-         options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-         options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-      });
+         services.ConfigureHttpJsonOptions(options =>
+         {
+            options.SerializerOptions.Converters.Add(new IdJsonConverter());
+            options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+         });
 
-      return services;
+         return services;
+      }
    }
 }
