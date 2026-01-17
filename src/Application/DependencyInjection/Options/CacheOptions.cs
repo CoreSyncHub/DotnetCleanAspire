@@ -1,4 +1,4 @@
-namespace Application.Abstractions.Caching;
+namespace Application.DependencyInjection.Options;
 
 /// <summary>
 /// Configuration options for the caching system.

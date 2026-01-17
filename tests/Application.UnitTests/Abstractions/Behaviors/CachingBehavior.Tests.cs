@@ -1,6 +1,7 @@
 using Application.Abstractions.Behaviors;
 using Application.Abstractions.Caching;
 using Application.Abstractions.Messaging;
+using Application.DependencyInjection.Options;
 using Domain.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

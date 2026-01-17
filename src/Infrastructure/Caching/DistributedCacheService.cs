@@ -1,4 +1,5 @@
 using Application.Abstractions.Caching;
+using Application.DependencyInjection.Options;
 using Infrastructure.Caching.Observability;
 using Infrastructure.Caching.Serializers;
 using Microsoft.Extensions.Caching.Distributed;

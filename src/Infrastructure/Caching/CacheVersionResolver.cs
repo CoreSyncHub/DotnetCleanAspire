@@ -1,4 +1,5 @@
 using Application.Abstractions.Caching;
+using Application.DependencyInjection.Options;
 using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Caching;

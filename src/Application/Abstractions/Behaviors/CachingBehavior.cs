@@ -1,3 +1,4 @@
+using Application.DependencyInjection.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
