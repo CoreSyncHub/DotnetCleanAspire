@@ -147,7 +147,7 @@ public sealed class CacheTracingTests : IDisposable
         // Assert
         Activity? activity = _activities.FirstOrDefault(a => a.DisplayName == "cache.get");
         activity.ShouldNotBeNull();
-        activity.TraceId.ShouldNotBe(default(ActivityTraceId));
+        activity.TraceId.ShouldNotBe(default);
     }
 
     public void Dispose()

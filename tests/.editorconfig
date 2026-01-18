@@ -2,5 +2,7 @@
 ########### DOTNET TESTS PROJECT STYLE SETTINGS ###########
 ###########################################################
 [*.{cs,vb}]
+dotnet_diagnostic.CA1303.severity = silent
 dotnet_diagnostic.CA1707.severity = silent
 dotnet_diagnostic.CA1515.severity = silent
+dotnet_diagnostic.CA1822.severity = silent
