@@ -11,12 +11,15 @@ internal static class PresentationDependencyInjectionRoot
 
             builder.AddObservability();
             builder.Services
+                .AddForwardHeaders()
+                .AddOpenApiDocumentation()
                 .AddOpenApi()
                 .AddApiVersioning()
                 .ConfigureCors(configuration, environment)
                 .ConfigureRateLimiter(configuration)
                 .AddExceptionHandling()
-                .ConfigureJsonOptions();
+                .ConfigureJsonOptions()
+                .AddTelemetryServices();
             return builder;
         }
     }

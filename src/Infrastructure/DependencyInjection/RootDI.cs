@@ -13,9 +13,10 @@ public static partial class InfrastructureDependencyInjectionRoot
         public IHostApplicationBuilder AddInfrastructure()
         {
             builder
-                .AddAuth()
+                .AddCaching()
                 .AddPersistence()
-                .AddCaching();
+                .AddAuth()
+                .AddIdentityServices();
 
             return builder;
         }

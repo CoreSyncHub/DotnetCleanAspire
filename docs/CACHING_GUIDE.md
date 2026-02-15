@@ -39,17 +39,17 @@ The caching system is integrated into the Mediator pipeline via two automatic be
 
 ```txt
 ┌──────────────────────────────────────────────────────────────┐
-│                      Mediator Pipeline                   │
+│                      Mediator Pipeline                       │
 ├──────────────────────────────────────────────────────────────┤
-│                                                          │
-│  Request → CachingBehavior → Handler → CacheInvalidation │
-│              (Queries)                    (Commands)     │
-│                  ↓                             ↓         │
-│            ICacheService                 ICacheService   │
-│                  ↓                              ↓        │
-│                      DistributedCacheService             │
-│                                ↓                         │
-│                     IDistributedCache (Redis)            │
+│                                                              │
+│  Request → CachingBehavior → Handler → CacheInvalidation     │
+│              (Queries)                    (Commands)         │
+│                  ↓                             ↓             │
+│            ICacheService                 ICacheService       │
+│                  ↓                              ↓            │
+│                      DistributedCacheService                 │
+│                                ↓                             │
+│                     IDistributedCache (Redis)                │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -294,13 +294,11 @@ public static class TodoCacheKeys
 ### Best Practices for Keys
 
 1. **Always use `CacheKey(feature, value)`**
-
    - Structure: `feature:value` (e.g., `todos:42`)
    - Prevents collisions between features
    - Compatible with feature-based invalidation
 
 2. **Centralize your keys in a static class**
-
    - Avoids magic strings
    - Facilitates maintenance
    - IntelliSense and refactoring

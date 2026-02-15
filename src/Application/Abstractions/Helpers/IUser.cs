@@ -7,19 +7,31 @@ namespace Application.Abstractions.Helpers;
 /// This interface abstracts the user context from the HTTP layer,
 /// allowing application services to access user information without
 /// depending on ASP.NET Core infrastructure.
-/// <para>
-/// The implementation typically extracts claims from the current
-/// <see cref="System.Security.Claims.ClaimsPrincipal"/> via HttpContext.
-/// </para>
 /// </remarks>
 public interface IUser
 {
-   /// <summary>
-   /// Gets the unique identifier of the authenticated user.
-   /// </summary>
-   /// <value>
-   /// The user's unique identifier (typically from the "sub" or "NameIdentifier" claim),
-   /// or <c>null</c> if the user is not authenticated.
-   /// </value>
-   string? Id { get; }
+    /// <summary>
+    /// Gets the unique identifier of the authenticated user.
+    /// </summary>
+    Id? Id { get; }
+
+    /// <summary>
+    /// Gets the email address of the authenticated user.
+    /// </summary>
+    string? Email { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the current user is authenticated.
+    /// </summary>
+    bool IsAuthenticated { get; }
+
+    /// <summary>
+    /// Gets the roles assigned to the current user.
+    /// </summary>
+    IReadOnlyList<string> Roles { get; }
+
+    /// <summary>
+    /// Checks if the current user is in the specified role.
+    /// </summary>
+    bool IsInRole(string role);
 }

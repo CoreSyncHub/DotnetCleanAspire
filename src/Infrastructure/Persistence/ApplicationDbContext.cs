@@ -1,42 +1,38 @@
-using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Domain.Todos.Entities;
 using Infrastructure.Extensions;
+using Infrastructure.Identity.Entities;
 using Infrastructure.Persistence.Interceptors;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence;
 
 public sealed class ApplicationDbContext(
     DbContextOptions<ApplicationDbContext> options,
     AuditableEntityInterceptor auditableEntityInterceptor,
-    DomainEventDispatchInterceptor domainEventDispatchInterceptor) : DbContext(options), IApplicationDbContext
+    DomainEventDispatchInterceptor domainEventDispatchInterceptor)
+    : IdentityDbContext<ApplicationUser, ApplicationRole, Id>(options), IApplicationDbContext
 {
-   public DbSet<Todo> Todos => Set<Todo>();
+    public DbSet<Todo> Todos => Set<Todo>();
 
-   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-   {
-      base.OnConfiguring(optionsBuilder);
-      optionsBuilder.AddInterceptors(auditableEntityInterceptor, domainEventDispatchInterceptor);
-   }
+    public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
 
-   protected override void OnModelCreating(ModelBuilder modelBuilder)
-   {
-      base.OnModelCreating(modelBuilder);
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.AddInterceptors(auditableEntityInterceptor, domainEventDispatchInterceptor);
+    }
 
-      // Apply all configurations from this assembly
-      modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+        builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        builder.ConfigureBaseAbstractions();
+    }
 
-      // Configure base abstractions (Id, Auditable, AggregateRoot)
-      modelBuilder.ConfigureBaseAbstractions();
-   }
-
-   protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-   {
-      base.ConfigureConventions(configurationBuilder);
-
-      // Configure Id type conventions
-      configurationBuilder.ConfigureIdConventions();
-   }
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.ConfigureIdConventions();
+    }
 }

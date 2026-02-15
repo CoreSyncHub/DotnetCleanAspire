@@ -3,6 +3,7 @@ using Infrastructure.Persistence;
 using Infrastructure.Persistence.Interceptors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Npgsql;
 
 namespace Infrastructure.DependencyInjection;
 
@@ -16,8 +17,15 @@ internal static partial class InfrastructureDependencyInjection
             builder.Services.AddScoped<AuditableEntityInterceptor>();
             builder.Services.AddScoped<DomainEventDispatchInterceptor>();
 
-            // DbContext with Aspire PostgreSQL integration
-            builder.AddNpgsqlDbContext<ApplicationDbContext>("cleanaspire-db");
+            // Register Npgsql data source via Aspire (handles connection string, health checks, telemetry)
+            builder.AddNpgsqlDataSource("cleanaspire-db");
+
+            // Register DbContext without pooling to support scoped interceptors
+            builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
+            {
+                NpgsqlDataSource dataSource = sp.GetRequiredService<NpgsqlDataSource>();
+                options.UseNpgsql(dataSource);
+            });
 
             // Register as IApplicationDbContext
             builder.Services.AddScoped<IApplicationDbContext>(sp =>

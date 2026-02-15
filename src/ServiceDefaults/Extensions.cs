@@ -59,7 +59,8 @@ public static class ServiceDefaultsExtensions
                 {
                     metrics.AddAspNetCoreInstrumentation()
                       .AddHttpClientInstrumentation()
-                      .AddRuntimeInstrumentation();
+                      .AddRuntimeInstrumentation()
+                      .AddPrometheusExporter();
                 })
                 .WithTracing(tracing =>
                 {

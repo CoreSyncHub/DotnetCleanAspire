@@ -4,6 +4,11 @@ IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(ar
 IResourceBuilder<ParameterResource> postgresPassword = builder.AddParameter("postgres-password", secret: true);
 IResourceBuilder<PostgresServerResource> postgres = builder.AddPostgres("postgres", password: postgresPassword)
     .WithDataVolume("cleanaspire-postgres-data")
+    .WithEndpoint("tcp", endpoint =>
+    {
+        endpoint.Port = 5432;
+        endpoint.IsProxied = false;
+    })
     .WithPgAdmin(pgAdmin => pgAdmin.WithExplicitStart());
 
 IResourceBuilder<PostgresDatabaseResource> database = postgres.AddDatabase("cleanaspire-db");

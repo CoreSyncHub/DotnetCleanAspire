@@ -9,7 +9,7 @@ internal static class WebApplicationExtensions
 {
    extension(WebApplication app)
    {
-      public async Task StartAsync()
+      public async Task LaunchAsync()
       {
          ApiVersionSet versions = app.CreateApiVersionSet();
 
@@ -37,6 +37,9 @@ internal static class WebApplicationExtensions
       /// </summary>
       private WebApplication ConfigureMiddlewarePipeline()
       {
+         // Forwarded headers (when behind a proxy)
+         app.UseForwardedHeaders();
+
          // Exception handling
          app.UseExceptionHandler();
 

@@ -41,18 +41,17 @@ public sealed class ValidationBehavior<TResponse>(IServiceProvider serviceProvid
          return await nextHandler();
       }
 
-      // Convert validation errors to ResultError
-      var errors = validationResult.Errors
+      // Convert validation errors to structured dictionary
+      var validationErrors = validationResult.Errors
           .GroupBy(e => e.PropertyName)
-          .Select(g => new
-          {
-             Property = g.Key,
-             Errors = g.Select(e => e.ErrorMessage).ToList()
-          })
-          .ToList();
+          .ToDictionary(
+             g => g.Key,
+             g => g.Select(e => e.ErrorMessage).ToArray());
 
-      string errorMessage = string.Join("; ", errors.Select(e => $"{e.Property}: {string.Join(", ", e.Errors)}"));
-      var resultError = new ResultError("Validation.Failed", errorMessage, ErrorType.Validation);
+      var resultError = new ResultError("Validation.Failed", "One or more validation errors occurred.", ErrorType.Validation)
+      {
+         ValidationErrors = validationErrors
+      };
 
       // Return failure result
       return CreateFailureResult(resultError);

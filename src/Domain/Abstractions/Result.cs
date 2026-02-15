@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Domain.Abstractions;
 
 public enum ErrorType
@@ -26,7 +28,19 @@ public readonly struct Unit
 
 #pragma warning restore CA1815
 
-public record ResultError(string Code, string Message, ErrorType Type = ErrorType.Failure);
+public record ResultError(string Code, string Message, ErrorType Type = ErrorType.Failure)
+{
+   /// <summary>
+   /// Validation errors dictionary for validation failures.
+   /// Key is the property name, value is the list of error messages.
+   /// </summary>
+   public IReadOnlyDictionary<string, string[]>? ValidationErrors { get; init; }
+
+   public ResultError(string Code, string Message, object[] messageArgs, ErrorType Type = ErrorType.Failure)
+       : this(Code, string.Format(CultureInfo.InvariantCulture, Message, messageArgs), Type)
+   {
+   }
+}
 
 public readonly record struct Result
 {

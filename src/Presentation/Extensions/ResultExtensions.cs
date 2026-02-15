@@ -38,6 +38,18 @@ internal static class ResultExtensions
 
    private static HttpResult ToErrorResult(ResultError error)
    {
+      // For validation errors with structured errors dictionary, use ValidationProblem
+      if (error.Type == ErrorType.Validation && error.ValidationErrors is not null)
+      {
+         return Results.ValidationProblem(
+             error.ValidationErrors,
+             title: "Validation Failed",
+             extensions: new Dictionary<string, object?>
+             {
+                ["code"] = error.Code
+             });
+      }
+
       int statusCode = error.Type switch
       {
          ErrorType.Validation => StatusCodes.Status400BadRequest,

@@ -30,8 +30,8 @@ internal static partial class ApplicationDependencyInjection
             // Register all handlers
             services.AddHandlersFromAssembly(assembly);
 
-            // Register all validators
-            services.AddValidatorsFromAssembly(assembly);
+            // Register all validators (includeInternalTypes to find internal validators)
+            services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
 
             // Register pipeline behaviors (order matters!)
             services.AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>));

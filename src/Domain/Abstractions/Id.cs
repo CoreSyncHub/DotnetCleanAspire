@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Domain.Abstractions;
 
@@ -6,6 +8,7 @@ namespace Domain.Abstractions;
 /// Represents a unique identifier based on ULID.
 /// </summary>
 [DebuggerDisplay("{ToString()}")]
+[TypeConverter(typeof(IdTypeConverter))]
 public readonly record struct Id : ISpanParsable<Id>, IComparable, IComparable<Id>
 {
    private readonly Ulid _value;
@@ -148,5 +151,42 @@ public readonly record struct Id : ISpanParsable<Id>, IComparable, IComparable<I
    public static bool operator >=(Id left, Id right)
    {
       return left.CompareTo(right) >= 0;
+   }
+}
+
+/// <summary>
+/// TypeConverter for Id to support ASP.NET Identity and other frameworks.
+/// </summary>
+public sealed class IdTypeConverter : TypeConverter
+{
+   public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+       => sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+
+   public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
+       => destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
+
+   public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+   {
+      if (value is string stringValue)
+      {
+         if (Id.TryParse(stringValue, null, out Id id))
+         {
+            return id;
+         }
+
+         throw new FormatException($"Cannot convert '{stringValue}' to Id.");
+      }
+
+      return base.ConvertFrom(context, culture, value);
+   }
+
+   public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+   {
+      if (destinationType == typeof(string) && value is Id id)
+      {
+         return id.ToString();
+      }
+
+      return base.ConvertTo(context, culture, value, destinationType);
    }
 }

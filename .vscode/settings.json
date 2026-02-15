@@ -5,7 +5,15 @@
     "editor.defaultFormatter": "ms-dotnettools.csharp"
   },
   "cSpell.language": "en,fr",
-  "cSpell.words": ["dotnet", "DOTNET", "initializers", "slnx"],
+  "cSpell.words": [
+    "dotnet",
+    "DOTNET",
+    "Dtos",
+    "initializers",
+    "oidc",
+    "Oidc",
+    "slnx"
+  ],
   "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
   "dotnet.formatting.organizeImportsOnFormat": true,
   "editor.codeActionsOnSave": {
@@ -15,7 +23,8 @@
   "editor.rulers": [120],
   "files.associations": {
     "*.json": "jsonc",
-    "*.slnx": "xml"
+    "*.slnx": "xml",
+    "*.esproj": "xml"
   },
   "files.exclude": {
     "**/.git": true,
