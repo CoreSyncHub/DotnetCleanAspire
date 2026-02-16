@@ -1,3 +1,4 @@
+using Application.Abstractions.DependencyInjection;
 using Application.Abstractions.Identity;
 using Application.DependencyInjection.Options;
 using Infrastructure.Identity.Entities;
@@ -18,8 +19,9 @@ internal static partial class InfrastructureDependencyInjection
         {
             IConfiguration configuration = builder.Configuration;
 
-            builder.Services.Configure<AuthIdentityOptions>(
-                configuration.GetSection(AuthIdentityOptions.SectionName));
+            builder.Services.AddOptionsWithValidation<AuthIdentityOptions, AuthIdentityOptionsValidator>(
+                configuration,
+                AuthIdentityOptions.SectionName);
 
             AuthIdentityOptions identityConfig = configuration
                 .GetSection(AuthIdentityOptions.SectionName)

@@ -26,22 +26,4 @@ internal sealed class JwtOptions
     /// Must be a sufficiently long and random string.
     /// </summary>
     public required string Key { get; init; }
-
-    public void Validate()
-    {
-        if (string.IsNullOrWhiteSpace(Issuer))
-        {
-            throw new InvalidOperationException("JWT Issuer is not configured.");
-        }
-
-        if (string.IsNullOrWhiteSpace(Audience))
-        {
-            throw new InvalidOperationException("JWT Audience is not configured.");
-        }
-
-        if (string.IsNullOrWhiteSpace(Key))
-        {
-            throw new InvalidOperationException("JWT Key is not configured.");
-        }
-    }
 }

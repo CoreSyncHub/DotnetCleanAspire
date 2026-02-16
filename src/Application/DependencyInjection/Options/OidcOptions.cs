@@ -6,11 +6,13 @@ public sealed class OidcOptions
 
     /// <summary>
     /// Indicates whether OIDC authentication is enabled.
+    /// Default: false
     /// </summary>
     public bool Enabled { get; init; }
 
     /// <summary>
     /// Indicates whether local authentication should be disabled when OIDC is enabled.
+    /// Default: false
     /// </summary>
     public bool DisableLocalAuthWhenEnabled { get; init; }
 

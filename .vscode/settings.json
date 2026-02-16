@@ -6,13 +6,21 @@
   },
   "cSpell.language": "en,fr",
   "cSpell.words": [
+    "appsettings",
+    "Authentik",
     "dotnet",
     "DOTNET",
     "Dtos",
     "initializers",
+    "Npgsql",
     "oidc",
     "Oidc",
-    "slnx"
+    "Pkce",
+    "Postgre",
+    "postgres",
+    "slnx",
+    "yarp",
+    "Yarp"
   ],
   "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
   "dotnet.formatting.organizeImportsOnFormat": true,

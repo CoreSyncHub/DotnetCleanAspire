@@ -1,4 +1,5 @@
 using Application.Abstractions.Helpers;
+using Domain.Abstractions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -45,7 +46,7 @@ public sealed class TestsWebApplicationFactory : WebApplicationFactory<Program>
       {
          services
            .RemoveAll<IUser>()
-           .AddTransient(provider => Mock.Of<IUser>(u => u.Id == Guid.NewGuid().ToString()));
+           .AddTransient(provider => Mock.Of<IUser>(u => u.Id == Id.New()));
 
          // TODO: Replace DbContext with Testcontainers PostgreSQL here when needed
       });

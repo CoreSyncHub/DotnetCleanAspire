@@ -1,3 +1,4 @@
+using Application.Abstractions.DependencyInjection;
 using Application.Abstractions.Helpers;
 using Application.DependencyInjection.Options;
 using Domain.Users.Constants;
@@ -18,16 +19,6 @@ namespace Infrastructure.DependencyInjection;
 
 internal static partial class InfrastructureDependencyInjection
 {
-    private static JwtOptions GetJwtOptions(IConfiguration configuration)
-    {
-        JwtOptions options = configuration
-            .GetSection(JwtOptions.SectionName)
-            .Get<JwtOptions>()
-            ?? throw new InvalidOperationException("JWT configuration section is missing.");
-        options.Validate();
-        return options;
-    }
-
     private static void ConfigureJwtBearer(JwtBearerOptions options, JwtOptions jwtOptions)
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -117,10 +108,17 @@ internal static partial class InfrastructureDependencyInjection
         public IHostApplicationBuilder AddAuth()
         {
             IConfiguration configuration = builder.Configuration;
-            JwtOptions jwtOptions = GetJwtOptions(configuration);
 
-            builder.Services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
-            builder.Services.Configure<OidcOptions>(configuration.GetSection(OidcOptions.SectionName));
+            builder.Services.AddOptionsWithValidation<JwtOptions, JwtOptionsValidator>(
+                configuration,
+                JwtOptions.SectionName);
+            builder.Services.AddOptionsWithValidation<OidcOptions, OidcOptionsValidator>(
+                configuration,
+                OidcOptions.SectionName);
+
+            JwtOptions jwtOptions = configuration
+                .GetSection(JwtOptions.SectionName)
+                .Get<JwtOptions>()!;
 
             OidcOptions oidcConfig = configuration
                 .GetSection(OidcOptions.SectionName)

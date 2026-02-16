@@ -1,4 +1,5 @@
 using Application.Abstractions.Caching;
+using Application.Abstractions.DependencyInjection;
 using Application.DependencyInjection.Options;
 using Infrastructure.Caching;
 using Infrastructure.Caching.Serializers;
@@ -32,8 +33,10 @@ internal static partial class InfrastructureDependencyInjection
 
             builder.Services.AddScoped<ICacheService, DistributedCacheService>();
 
-            // Configure CacheOptions
-            builder.Services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.SectionName));
+            // Configure CacheOptions with validation at startup
+            builder.Services.AddOptionsWithValidation<CacheOptions, CacheOptionsValidator>(
+                builder.Configuration,
+                CacheOptions.SectionName);
 
             return builder;
         }
