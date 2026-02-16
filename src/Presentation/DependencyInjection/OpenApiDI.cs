@@ -1,4 +1,5 @@
 using Application.Abstractions.Caching;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
 namespace Presentation.DependencyInjection;
@@ -22,78 +23,104 @@ internal static partial class PresentationDependencyInjection
         {
             services.AddOpenApi(options =>
             {
-                options.AddDocumentTransformer((document, context, cancellationToken) =>
-               {
-                   document.Info.Title = "Clean Aspire API";
-                   document.Info.Version = "v1";
-                   document.Info.Description = "A Clean Architecture template with .NET Aspire";
-
-                   // Replace version placeholder with actual version in all paths
-                   if (document.Paths is not null)
-                   {
-                       var pathsToUpdate = document.Paths.ToList();
-                       document.Paths.Clear();
-
-                       foreach (KeyValuePair<string, IOpenApiPathItem> pathItem in pathsToUpdate)
-                       {
-                           // Handle both {version} and {version:apiVersion} patterns
-                           string updatedPath = pathItem.Key
-                               .Replace("{version:apiVersion}", "1", StringComparison.Ordinal)
-                               .Replace("{version}", "1", StringComparison.Ordinal);
-                           document.Paths.Add(updatedPath, pathItem.Value);
-                       }
-                   }
-
-                   return Task.CompletedTask;
-               });
-
-                // Add operation transformer to remove version parameter from operations
-                options.AddOperationTransformer((operation, context, cancellationToken) =>
-               {
-                   // Remove version parameter from operations
-                   if (operation.Parameters is not null)
-                   {
-                       IOpenApiParameter? versionParam = operation.Parameters.FirstOrDefault(p => p.Name is "version");
-                       if (versionParam is not null)
-                       {
-                           operation.Parameters.Remove(versionParam);
-                       }
-                   }
-
-                   return Task.CompletedTask;
-               });
-
-                // Add schema transformer to exclude cache interface properties
-                options.AddSchemaTransformer((schema, context, cancellationToken) =>
-                {
-                    if (schema.Properties is null || schema.Properties.Count == 0)
-                    {
-                        return Task.CompletedTask;
-                    }
-
-                    Type type = context.JsonTypeInfo.Type;
-                    bool implementsCaching = typeof(ICacheable).IsAssignableFrom(type)
-                        || typeof(ICacheInvalidating).IsAssignableFrom(type);
-
-                    if (!implementsCaching)
-                    {
-                        return Task.CompletedTask;
-                    }
-
-                    // Remove cache-related properties from schema (use camelCase as that's the JSON naming policy)
-                    foreach (string propName in CachePropertiesToExclude)
-                    {
-                        string camelCaseName = char.ToLowerInvariant(propName[0]) + propName[1..];
-                        schema.Properties.Remove(camelCaseName);
-                    }
-
-                    return Task.CompletedTask;
-                });
+                options.AddDocumentTransformer(TransformDocument);
+                options.AddOperationTransformer(TransformOperation);
+                options.AddSchemaTransformer(TransformSchema);
             });
 
             services.AddEndpointsApiExplorer();
 
             return services;
+        }
+    }
+
+    private static Task TransformDocument(OpenApiDocument document, OpenApiDocumentTransformerContext _, CancellationToken __)
+    {
+        document.Info.Title = "Clean Aspire API";
+        document.Info.Version = "v1";
+        document.Info.Description = "A Clean Architecture template with .NET Aspire";
+
+        ReplaceVersionPlaceholdersInPaths(document);
+
+        return Task.CompletedTask;
+    }
+
+    private static void ReplaceVersionPlaceholdersInPaths(OpenApiDocument document)
+    {
+        if (document.Paths is null)
+        {
+            return;
+        }
+
+        var pathsToUpdate = document.Paths.ToList();
+        document.Paths.Clear();
+
+        foreach (KeyValuePair<string, IOpenApiPathItem> pathItem in pathsToUpdate)
+        {
+            string updatedPath = pathItem.Key
+                .Replace("{version:apiVersion}", "1", StringComparison.Ordinal)
+                .Replace("{version}", "1", StringComparison.Ordinal);
+            document.Paths.Add(updatedPath, pathItem.Value);
+        }
+    }
+
+    private static Task TransformOperation(OpenApiOperation operation, OpenApiOperationTransformerContext _, CancellationToken __)
+    {
+        RemoveVersionParameter(operation);
+
+        return Task.CompletedTask;
+    }
+
+    private static void RemoveVersionParameter(OpenApiOperation operation)
+    {
+        if (operation.Parameters is null)
+        {
+            return;
+        }
+
+        IOpenApiParameter? versionParam = operation.Parameters.FirstOrDefault(p => p.Name is "version");
+        if (versionParam is not null)
+        {
+            operation.Parameters.Remove(versionParam);
+        }
+    }
+
+    private static Task TransformSchema(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken _)
+    {
+        if (!ShouldProcessSchema(schema, context))
+        {
+            return Task.CompletedTask;
+        }
+
+        RemoveCacheProperties(schema);
+
+        return Task.CompletedTask;
+    }
+
+    private static bool ShouldProcessSchema(OpenApiSchema schema, OpenApiSchemaTransformerContext context)
+    {
+        if (schema.Properties is null || schema.Properties.Count == 0)
+        {
+            return false;
+        }
+
+        Type type = context.JsonTypeInfo.Type;
+
+        return typeof(ICacheable).IsAssignableFrom(type)
+            || typeof(ICacheInvalidating).IsAssignableFrom(type);
+    }
+
+    private static void RemoveCacheProperties(OpenApiSchema schema)
+    {
+        if (schema.Properties is null)
+        {
+            return;
+        }
+
+        foreach (string propName in CachePropertiesToExclude)
+        {
+            string camelCaseName = char.ToLowerInvariant(propName[0]) + propName[1..];
+            schema.Properties.Remove(camelCaseName);
         }
     }
 }

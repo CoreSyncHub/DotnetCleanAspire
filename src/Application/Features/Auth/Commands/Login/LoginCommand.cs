@@ -17,7 +17,7 @@ internal sealed class LoginCommandHandler(
 {
     public async Task<Result<AuthTokensDto>> Handle(
         LoginCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         OidcOptions oidc = oidcOptions.Value;
         if (oidc.Enabled && oidc.DisableLocalAuthWhenEnabled)

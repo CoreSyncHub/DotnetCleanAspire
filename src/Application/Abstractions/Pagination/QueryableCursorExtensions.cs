@@ -24,77 +24,14 @@ internal static class QueryableCursorExtensions
          Id? cursorId = Cursor.DecodeId(request.Cursor);
          Func<T, Id> compiledIdSelector = idSelector.Compile();
 
-         IQueryable<T> filteredQuery;
+         IQueryable<T> filteredQuery = ApplyIdBasedCursorFilter(query, request, idSelector, cursorId);
 
-         if (cursorId.HasValue)
-         {
-            Id cursorValue = cursorId.Value;
+         List<T> items = await FetchItemsAsync(filteredQuery, request.PageSize, cancellationToken);
+         bool hasMore = TrimExtraItem(items, request.PageSize);
+         ReverseIfBackward(items, request.Direction);
 
-            if (request.Direction is CursorDirection.Forward)
-            {
-               // Get items after cursor (Id > cursorId)
-               filteredQuery = query
-                   .Where(BuildIdComparisonExpression(idSelector, cursorValue, isGreaterThan: true))
-                   .OrderBy(idSelector);
-            }
-            else
-            {
-               // Get items before cursor (Id < cursorId)
-               filteredQuery = query
-                   .Where(BuildIdComparisonExpression(idSelector, cursorValue, isGreaterThan: false))
-                   .OrderByDescending(idSelector);
-            }
-         }
-         else
-         {
-            // No cursor, start from beginning
-            filteredQuery = query.OrderBy(idSelector);
-         }
-
-         // Fetch one extra item to check if there are more
-         List<T> items = await filteredQuery
-             .Take(request.PageSize + 1)
-             .ToListAsync(cancellationToken);
-
-         bool hasMore = items.Count > request.PageSize;
-
-         if (hasMore)
-         {
-            items.RemoveAt(items.Count - 1);
-         }
-
-         // Reverse if navigating backward
-         if (request.Direction is CursorDirection.Backward)
-         {
-            items.Reverse();
-         }
-
-         // Build cursors
-         string? nextCursor = null;
-         string? previousCursor = null;
-
-         if (items.Count > 0)
-         {
-            Id firstId = compiledIdSelector(items[0]);
-            Id lastId = compiledIdSelector(items[^1]);
-
-            if (request.Direction is CursorDirection.Forward)
-            {
-               if (hasMore)
-                  nextCursor = Cursor.Encode(lastId);
-
-               if (cursorId.HasValue)
-                  previousCursor = Cursor.Encode(firstId);
-            }
-            else
-            {
-               if (cursorId.HasValue)
-                  nextCursor = Cursor.Encode(lastId);
-
-               if (hasMore)
-                  previousCursor = Cursor.Encode(firstId);
-            }
-         }
+         (string? nextCursor, string? previousCursor) = BuildIdCursors(
+             items, compiledIdSelector, request.Direction, hasMore, cursorId.HasValue);
 
          return new CursorPageResponse<T>
          {
@@ -126,110 +63,15 @@ internal static class QueryableCursorExtensions
          Func<T, Id> compiledIdSelector = idSelector.Compile();
          Func<T, TSortKey> compiledSortKeySelector = sortKeySelector.Compile();
 
-         IQueryable<T> filteredQuery;
+         IQueryable<T> filteredQuery = ApplySortKeyBasedCursorFilter(
+             query, request, idSelector, sortKeySelector, cursorData, descending);
 
-         if (cursorData.HasValue)
-         {
-            (Id cursorId, TSortKey? cursorSortValue) = cursorData.Value;
+         List<T> items = await FetchItemsAsync(filteredQuery, request.PageSize, cancellationToken);
+         bool hasMore = TrimExtraItem(items, request.PageSize);
+         ReverseIfBackward(items, request.Direction);
 
-            if (request.Direction is CursorDirection.Forward)
-            {
-               if (descending)
-               {
-                  // Descending: (sortKey < cursorSortKey) OR (sortKey == cursorSortKey AND Id > cursorId)
-                  filteredQuery = query
-                      .Where(BuildCompositeComparisonExpression(
-                          idSelector, sortKeySelector, cursorId, cursorSortValue, isDescending: true, isForward: true))
-                      .OrderByDescending(sortKeySelector)
-                      .ThenBy(idSelector);
-               }
-               else
-               {
-                  // Ascending: (sortKey > cursorSortKey) OR (sortKey == cursorSortKey AND Id > cursorId)
-                  filteredQuery = query
-                      .Where(BuildCompositeComparisonExpression(
-                          idSelector, sortKeySelector, cursorId, cursorSortValue, isDescending: false, isForward: true))
-                      .OrderBy(sortKeySelector)
-                      .ThenBy(idSelector);
-               }
-            }
-            else
-            {
-               if (descending)
-               {
-                  // Backward descending
-                  filteredQuery = query
-                      .Where(BuildCompositeComparisonExpression(
-                          idSelector, sortKeySelector, cursorId, cursorSortValue, isDescending: true, isForward: false))
-                      .OrderBy(sortKeySelector)
-                      .ThenByDescending(idSelector);
-               }
-               else
-               {
-                  // Backward ascending
-                  filteredQuery = query
-                      .Where(BuildCompositeComparisonExpression(
-                          idSelector, sortKeySelector, cursorId, cursorSortValue, isDescending: false, isForward: false))
-                      .OrderByDescending(sortKeySelector)
-                      .ThenByDescending(idSelector);
-               }
-            }
-         }
-         else
-         {
-            // No cursor, start from beginning
-            filteredQuery = descending
-                ? query.OrderByDescending(sortKeySelector).ThenBy(idSelector)
-                : query.OrderBy(sortKeySelector).ThenBy(idSelector);
-         }
-
-         // Fetch one extra item to check if there are more
-         List<T> items = await filteredQuery
-             .Take(request.PageSize + 1)
-             .ToListAsync(cancellationToken);
-
-         bool hasMore = items.Count > request.PageSize;
-
-         if (hasMore)
-         {
-            items.RemoveAt(items.Count - 1);
-         }
-
-         // Reverse if navigating backward
-         if (request.Direction is CursorDirection.Backward)
-         {
-            items.Reverse();
-         }
-
-         // Build cursors
-         string? nextCursor = null;
-         string? previousCursor = null;
-
-         if (items.Count > 0)
-         {
-            T first = items[0];
-            T last = items[^1];
-
-            string firstCursor = Cursor.Encode(compiledIdSelector(first), compiledSortKeySelector(first));
-            string lastCursor = Cursor.Encode(compiledIdSelector(last), compiledSortKeySelector(last));
-
-            if (request.Direction is CursorDirection.Forward)
-            {
-               if (hasMore)
-                  nextCursor = lastCursor;
-
-               if (cursorData.HasValue)
-                  previousCursor = firstCursor;
-            }
-            else
-            {
-               if (cursorData.HasValue)
-                  nextCursor = lastCursor;
-
-               if (hasMore)
-                  previousCursor = firstCursor;
-            }
-         }
+         (string? nextCursor, string? previousCursor) = BuildSortKeyCursors(
+             items, compiledIdSelector, compiledSortKeySelector, request.Direction, hasMore, cursorData.HasValue);
 
          return new CursorPageResponse<T>
          {
@@ -238,6 +80,161 @@ internal static class QueryableCursorExtensions
             PreviousCursor = previousCursor
          };
       }
+   }
+
+   private static IQueryable<T> ApplyIdBasedCursorFilter<T>(
+       IQueryable<T> query,
+       CursorPageRequest request,
+       Expression<Func<T, Id>> idSelector,
+       Id? cursorId) where T : class
+   {
+      if (!cursorId.HasValue)
+      {
+         return query.OrderBy(idSelector);
+      }
+
+      Id cursorValue = cursorId.Value;
+      bool isForward = request.Direction is CursorDirection.Forward;
+
+      return isForward
+          ? query
+              .Where(BuildIdComparisonExpression(idSelector, cursorValue, isGreaterThan: true))
+              .OrderBy(idSelector)
+          : query
+              .Where(BuildIdComparisonExpression(idSelector, cursorValue, isGreaterThan: false))
+              .OrderByDescending(idSelector);
+   }
+
+   private static IQueryable<T> ApplySortKeyBasedCursorFilter<T, TSortKey>(
+       IQueryable<T> query,
+       CursorPageRequest request,
+       Expression<Func<T, Id>> idSelector,
+       Expression<Func<T, TSortKey>> sortKeySelector,
+       (Id Id, TSortKey SortValue)? cursorData,
+       bool descending)
+       where T : class
+       where TSortKey : IComparable<TSortKey>
+   {
+      if (!cursorData.HasValue)
+      {
+         return ApplyInitialOrdering(query, idSelector, sortKeySelector, descending);
+      }
+
+      (Id cursorId, TSortKey? cursorSortValue) = cursorData.Value;
+      bool isForward = request.Direction is CursorDirection.Forward;
+
+      return ApplyCursorFilterWithOrdering(
+          query, idSelector, sortKeySelector, cursorId, cursorSortValue, descending, isForward);
+   }
+
+   private static IOrderedQueryable<T> ApplyInitialOrdering<T, TSortKey>(
+       IQueryable<T> query,
+       Expression<Func<T, Id>> idSelector,
+       Expression<Func<T, TSortKey>> sortKeySelector,
+       bool descending)
+       where T : class
+       where TSortKey : IComparable<TSortKey>
+   {
+      return descending
+          ? query.OrderByDescending(sortKeySelector).ThenBy(idSelector)
+          : query.OrderBy(sortKeySelector).ThenBy(idSelector);
+   }
+
+   private static IQueryable<T> ApplyCursorFilterWithOrdering<T, TSortKey>(
+       IQueryable<T> query,
+       Expression<Func<T, Id>> idSelector,
+       Expression<Func<T, TSortKey>> sortKeySelector,
+       Id cursorId,
+       TSortKey cursorSortValue,
+       bool descending,
+       bool isForward)
+       where T : class
+       where TSortKey : IComparable<TSortKey>
+   {
+      Expression<Func<T, bool>> filter = BuildCompositeComparisonExpression(
+          idSelector, sortKeySelector, cursorId, cursorSortValue, descending, isForward);
+
+      IQueryable<T> filtered = query.Where(filter);
+
+      return (descending, isForward) switch
+      {
+         (true, true) => filtered.OrderByDescending(sortKeySelector).ThenBy(idSelector),
+         (false, true) => filtered.OrderBy(sortKeySelector).ThenBy(idSelector),
+         (true, false) => filtered.OrderBy(sortKeySelector).ThenByDescending(idSelector),
+         (false, false) => filtered.OrderByDescending(sortKeySelector).ThenByDescending(idSelector)
+      };
+   }
+
+   private static async Task<List<T>> FetchItemsAsync<T>(
+       IQueryable<T> query,
+       int pageSize,
+       CancellationToken cancellationToken)
+   {
+      return await query
+          .Take(pageSize + 1)
+          .ToListAsync(cancellationToken);
+   }
+
+   private static bool TrimExtraItem<T>(List<T> items, int pageSize)
+   {
+      bool hasMore = items.Count > pageSize;
+      if (hasMore)
+      {
+         items.RemoveAt(items.Count - 1);
+      }
+
+      return hasMore;
+   }
+
+   private static void ReverseIfBackward<T>(List<T> items, CursorDirection direction)
+   {
+      if (direction is CursorDirection.Backward)
+      {
+         items.Reverse();
+      }
+   }
+
+   private static (string? NextCursor, string? PreviousCursor) BuildIdCursors<T>(
+       List<T> items,
+       Func<T, Id> idSelector,
+       CursorDirection direction,
+       bool hasMore,
+       bool hasCursor)
+   {
+      if (items.Count == 0)
+      {
+         return (null, null);
+      }
+
+      Id firstId = idSelector(items[0]);
+      Id lastId = idSelector(items[^1]);
+
+      return direction is CursorDirection.Forward
+          ? (hasMore ? Cursor.Encode(lastId) : null, hasCursor ? Cursor.Encode(firstId) : null)
+          : (hasCursor ? Cursor.Encode(lastId) : null, hasMore ? Cursor.Encode(firstId) : null);
+   }
+
+   private static (string? NextCursor, string? PreviousCursor) BuildSortKeyCursors<T, TSortKey>(
+       List<T> items,
+       Func<T, Id> idSelector,
+       Func<T, TSortKey> sortKeySelector,
+       CursorDirection direction,
+       bool hasMore,
+       bool hasCursor)
+   {
+      if (items.Count == 0)
+      {
+         return (null, null);
+      }
+
+      T first = items[0];
+      T last = items[^1];
+      string firstCursor = Cursor.Encode(idSelector(first), sortKeySelector(first));
+      string lastCursor = Cursor.Encode(idSelector(last), sortKeySelector(last));
+
+      return direction is CursorDirection.Forward
+          ? (hasMore ? lastCursor : null, hasCursor ? firstCursor : null)
+          : (hasCursor ? lastCursor : null, hasMore ? firstCursor : null);
    }
 
    private static Expression<Func<T, bool>> BuildIdComparisonExpression<T>(
@@ -267,52 +264,42 @@ internal static class QueryableCursorExtensions
    {
       ParameterExpression parameter = idSelector.Parameters[0];
 
-      // Rebind the expressions to use the same parameter
       Expression idAccess = RebindParameter(idSelector.Body, idSelector.Parameters[0], parameter);
       Expression sortKeyAccess = RebindParameter(sortKeySelector.Body, sortKeySelector.Parameters[0], parameter);
 
       ConstantExpression cursorIdConstant = Expression.Constant(cursorId);
       ConstantExpression cursorSortConstant = Expression.Constant(cursorSortValue, typeof(TSortKey));
 
-      Expression sortKeyComparison;
-      Expression idComparison;
-
-      if (isForward)
-      {
-         if (isDescending)
-         {
-            // (sortKey < cursorSort) OR (sortKey == cursorSort AND id > cursorId)
-            sortKeyComparison = Expression.LessThan(sortKeyAccess, cursorSortConstant);
-            idComparison = Expression.GreaterThan(idAccess, cursorIdConstant);
-         }
-         else
-         {
-            // (sortKey > cursorSort) OR (sortKey == cursorSort AND id > cursorId)
-            sortKeyComparison = Expression.GreaterThan(sortKeyAccess, cursorSortConstant);
-            idComparison = Expression.GreaterThan(idAccess, cursorIdConstant);
-         }
-      }
-      else
-      {
-         if (isDescending)
-         {
-            // (sortKey > cursorSort) OR (sortKey == cursorSort AND id < cursorId)
-            sortKeyComparison = Expression.GreaterThan(sortKeyAccess, cursorSortConstant);
-            idComparison = Expression.LessThan(idAccess, cursorIdConstant);
-         }
-         else
-         {
-            // (sortKey < cursorSort) OR (sortKey == cursorSort AND id < cursorId)
-            sortKeyComparison = Expression.LessThan(sortKeyAccess, cursorSortConstant);
-            idComparison = Expression.LessThan(idAccess, cursorIdConstant);
-         }
-      }
+      (Expression sortKeyComparison, Expression idComparison) = BuildComparisonExpressions(
+          idAccess, sortKeyAccess, cursorIdConstant, cursorSortConstant, isDescending, isForward);
 
       BinaryExpression sortKeyEqual = Expression.Equal(sortKeyAccess, cursorSortConstant);
       BinaryExpression equalAndId = Expression.AndAlso(sortKeyEqual, idComparison);
       BinaryExpression combined = Expression.OrElse(sortKeyComparison, equalAndId);
 
       return Expression.Lambda<Func<T, bool>>(combined, parameter);
+   }
+
+   private static (Expression SortKeyComparison, Expression IdComparison) BuildComparisonExpressions(
+       Expression idAccess,
+       Expression sortKeyAccess,
+       ConstantExpression cursorIdConstant,
+       ConstantExpression cursorSortConstant,
+       bool isDescending,
+       bool isForward)
+   {
+      bool useLessThanForSortKey = isForward ? isDescending : !isDescending;
+      bool useGreaterThanForId = isForward;
+
+      Expression sortKeyComparison = useLessThanForSortKey
+          ? Expression.LessThan(sortKeyAccess, cursorSortConstant)
+          : Expression.GreaterThan(sortKeyAccess, cursorSortConstant);
+
+      Expression idComparison = useGreaterThanForId
+          ? Expression.GreaterThan(idAccess, cursorIdConstant)
+          : Expression.LessThan(idAccess, cursorIdConstant);
+
+      return (sortKeyComparison, idComparison);
    }
 
    private static Expression RebindParameter(Expression expression, ParameterExpression oldParameter, ParameterExpression newParameter)

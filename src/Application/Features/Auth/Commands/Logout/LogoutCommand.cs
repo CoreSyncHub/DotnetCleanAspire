@@ -11,7 +11,7 @@ internal sealed class LogoutCommandHandler(
 {
     public async Task<Result<Unit>> Handle(
         LogoutCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         if (!string.IsNullOrEmpty(request.RefreshToken))
         {

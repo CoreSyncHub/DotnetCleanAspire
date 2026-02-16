@@ -13,7 +13,7 @@ internal sealed class ResetPasswordCommandHandler(
 {
     public async Task<Result<Unit>> Handle(
         ResetPasswordCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await identityService.ResetPasswordAsync(
             request.Email,

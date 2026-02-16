@@ -25,7 +25,7 @@ internal sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<
         public Id? Id => null;
         public string? Email => null;
         public bool IsAuthenticated => false;
-        public IReadOnlyList<string> Roles => [];
+        public IReadOnlyList<string> GetRoles() => [];
         public bool IsInRole(string role) => false;
     }
 

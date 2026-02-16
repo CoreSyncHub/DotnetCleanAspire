@@ -28,7 +28,7 @@ public interface IUser
     /// <summary>
     /// Gets the roles assigned to the current user.
     /// </summary>
-    IReadOnlyList<string> Roles { get; }
+    IReadOnlyList<string> GetRoles();
 
     /// <summary>
     /// Checks if the current user is in the specified role.

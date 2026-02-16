@@ -14,7 +14,7 @@ internal sealed class CurrentUser(IHttpContextAccessor httpContextAccessor) : IU
 
     public bool IsAuthenticated => User?.Identity?.IsAuthenticated ?? false;
 
-    public IReadOnlyList<string> Roles => User?
+    public IReadOnlyList<string> GetRoles() => User?
         .FindAll(ClaimTypes.Role)
         .Select(c => c.Value)
         .ToList() ?? [];

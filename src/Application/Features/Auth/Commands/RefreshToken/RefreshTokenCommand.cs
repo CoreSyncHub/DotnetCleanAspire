@@ -12,7 +12,7 @@ internal sealed class RefreshTokenCommandHandler(
 {
     public async Task<Result<AuthTokensDto>> Handle(
         RefreshTokenCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return await tokenService.RefreshTokensAsync(
             request.AccessToken,

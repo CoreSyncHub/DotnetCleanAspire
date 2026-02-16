@@ -9,7 +9,7 @@ internal sealed class ForgotPasswordCommandHandler(
 {
     public async Task<Result<Unit>> Handle(
         ForgotPasswordCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         // Always return success to prevent email enumeration attacks
         // In a real application, you would send an email with the reset token

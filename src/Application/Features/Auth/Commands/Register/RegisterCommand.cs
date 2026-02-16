@@ -20,7 +20,7 @@ internal sealed class RegisterCommandHandler(
 {
     public async Task<Result<AuthTokensDto>> Handle(
         RegisterCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         OidcOptions oidc = oidcOptions.Value;
         if (oidc.Enabled && oidc.DisableLocalAuthWhenEnabled)

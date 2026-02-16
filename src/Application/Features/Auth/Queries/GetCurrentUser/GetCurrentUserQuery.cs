@@ -13,7 +13,7 @@ internal sealed class GetCurrentUserQueryHandler(
 {
     public async Task<Result<UserDto>> Handle(
         GetCurrentUserQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         if (currentUser.Id is null)
         {

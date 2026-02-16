@@ -11,7 +11,7 @@ internal sealed class ExchangeCodeCommandHandler(
 {
     public async Task<Result<AuthTokensDto>> Handle(
         ExchangeCodeCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         AuthTokensDto? tokens = await authCodeService.ExchangeCodeAsync(request.Code, cancellationToken);
 

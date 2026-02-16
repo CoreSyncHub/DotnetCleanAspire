@@ -17,7 +17,7 @@ internal sealed class OidcCallbackCommandHandler(
 {
     public async Task<Result<AuthTokensDto>> Handle(
         OidcCallbackCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         ClaimsPrincipal principal = request.Principal;
         OidcOptions oidc = oidcOptions.Value;
