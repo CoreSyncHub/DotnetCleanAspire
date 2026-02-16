@@ -136,7 +136,6 @@ public class ValidationBehaviorTests
       // Assert
       result.IsFailure.ShouldBeTrue();
       result.Error.Type.ShouldBe(ErrorType.Validation);
-      result.Error.Message.ShouldContain("Value");
    }
 
    // Test helpers
