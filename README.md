@@ -1,5 +1,7 @@
 # .NET Clean Architecture Boilerplate with Aspire
 
+[![Quality gate](https://sonarqube.coresync.fr/api/project_badges/quality_gate?project=CoreSyncHub_DotnetCleanAspire_67702e99-7ccd-4839-9ae4-1b01fa0c58e8&token=sqb_68ca213a6e9fe76a47d549ed09696c17f3f67755)](https://sonarqube.coresync.fr/dashboard?id=CoreSyncHub_DotnetCleanAspire_67702e99-7ccd-4839-9ae4-1b01fa0c58e8)
+
 A production-ready .NET 10 boilerplate implementing Clean Architecture principles with Aspire for cloud-native development.
 
 ## Features
