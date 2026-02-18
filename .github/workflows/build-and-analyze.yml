@@ -1,46 +1,56 @@
-name: Build
+name: Build, Test and Analyze
 
 on:
     push:
         branches:
             - main
+    pull_request:
+        branches:
+            - main
 
 jobs:
     build:
-        name: Build and analyze
-        runs-on: windows-latest
+        name: Build, Test and Analyze
+        runs-on: ubuntu-latest
 
         steps:
             - uses: actions/checkout@v4
               with:
-                  fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+                  fetch-depth: 0
+
+            - name: Set up .NET 10
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "10.0.x"
+
             - name: Set up JDK 17
               uses: actions/setup-java@v4
               with:
                   java-version: 17
-                  distribution: "zulu" # Alternative distribution options are available.
+                  distribution: "zulu"
+
             - name: Cache SonarQube packages
               uses: actions/cache@v4
               with:
-                  path: ${{ runner.temp }}\cache
+                  path: ~/.sonar/cache
                   key: ${{ runner.os }}-sonar
                   restore-keys: ${{ runner.os }}-sonar
-            - name: Cache SonarQube scanner
-              id: cache-sonar-scanner
-              uses: actions/cache@v4
-              with:
-                  path: ${{ runner.temp }}\scanner
-                  key: ${{ runner.os }}-sonar-scanner
-                  restore-keys: ${{ runner.os }}-sonar-scanner
+
             - name: Install SonarQube scanner
-              if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-              shell: powershell
+              run: dotnet tool install --global dotnet-sonarscanner
+
+            - name: Restore dependencies
+              run: dotnet restore
+
+            - name: Begin SonarQube analysis
               run: |
-                  New-Item -Path ${{ runner.temp }}\scanner -ItemType Directory
-                  dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
-            - name: Build and analyze
-              shell: powershell
-              run: |
-                  ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"CoreSyncHub_DotnetCleanAspire_67702e99-7ccd-4839-9ae4-1b01fa0c58e8" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
-                  dotnet build
-                  ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+                  dotnet sonarscanner begin /k:"CoreSyncHub_DotnetCleanAspire_67702e99-7ccd-4839-9ae4-1b01fa0c58e8" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+
+            - name: Build
+              run: dotnet build --no-restore --no-incremental
+
+            - name: Test with coverage
+              run: dotnet test --verbosity normal --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+            - name: End SonarQube analysis
+              run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
