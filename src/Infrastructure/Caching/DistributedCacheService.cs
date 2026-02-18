@@ -18,8 +18,10 @@ internal sealed class DistributedCacheService(
     ILogger<DistributedCacheService> logger,
     IConnectionMultiplexer? redis = null) : ICacheService
 {
+   private const string CacheFeatureTag = "cache.feature";
+   private const string CacheRedisHitTag = "cache.redis_hit";
+   private const string CacheLogicalHitTag = "cache.logical_hit";
    private static readonly ActivitySource ActivitySource = new("DotnetCleanAspire.Caching");
-
    private readonly IDistributedCache _cache = cache;
    private readonly ICacheSerializer _serializer = serializer;
    private readonly CacheOptions _cacheOptions = cacheOptions.Value;
@@ -30,7 +32,7 @@ internal sealed class DistributedCacheService(
    public async Task<CacheEntry<T>?> GetAsync<T>(ICacheKey key, string? version = null, CancellationToken cancellationToken = default)
    {
       using Activity? activity = ActivitySource.StartActivity("cache.get");
-      activity?.SetTag("cache.feature", key.Feature);
+      activity?.SetTag(CacheFeatureTag, key.Feature);
 
       var stopwatch = Stopwatch.StartNew();
       try
@@ -46,8 +48,8 @@ internal sealed class DistributedCacheService(
          {
             stopwatch.Stop();
             _metrics.RecordMiss(key.Feature);
-            activity?.SetTag("cache.redis_hit", false);
-            activity?.SetTag("cache.logical_hit", false);
+            activity?.SetTag(CacheRedisHitTag, false);
+            activity?.SetTag(CacheLogicalHitTag, false);
             _metrics.RecordOperationDuration("get", stopwatch.Elapsed.TotalMilliseconds, success: true);
             return null;
          }
@@ -80,8 +82,8 @@ internal sealed class DistributedCacheService(
 
             _metrics.RecordMiss(key.Feature);
             _metrics.RecordOperationDuration("get", stopwatch.Elapsed.TotalMilliseconds, success: true);
-            activity?.SetTag("cache.redis_hit", true);
-            activity?.SetTag("cache.logical_hit", false);
+            activity?.SetTag(CacheRedisHitTag, false);
+            activity?.SetTag(CacheLogicalHitTag, false);
             activity?.SetTag("cache.deserialization_failed", true);
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
 
@@ -103,8 +105,8 @@ internal sealed class DistributedCacheService(
          if (logicalHit)
          {
             _metrics.RecordHit(key.Feature);
-            activity?.SetTag("cache.redis_hit", true);
-            activity?.SetTag("cache.logical_hit", true);
+            activity?.SetTag(CacheRedisHitTag, true);
+            activity?.SetTag(CacheLogicalHitTag, true);
             activity?.SetTag("cache.has_value", entry!.HasValue);
          }
          else
@@ -123,8 +125,8 @@ internal sealed class DistributedCacheService(
             }
 
             _metrics.RecordMiss(key.Feature);
-            activity?.SetTag("cache.redis_hit", true);
-            activity?.SetTag("cache.logical_hit", false);
+            activity?.SetTag(CacheRedisHitTag, true);
+            activity?.SetTag(CacheLogicalHitTag, false);
             activity?.SetTag("cache.deserialization_failed", true);
          }
 
@@ -150,7 +152,7 @@ internal sealed class DistributedCacheService(
        CancellationToken cancellationToken = default)
    {
       using Activity? activity = ActivitySource.StartActivity("cache.set");
-      activity?.SetTag("cache.feature", key.Feature);
+      activity?.SetTag(CacheFeatureTag, key.Feature);
 
       var stopwatch = Stopwatch.StartNew();
       try
@@ -220,7 +222,7 @@ internal sealed class DistributedCacheService(
    public async Task RemoveAsync(ICacheKey key, string? version = null, CancellationToken cancellationToken = default)
    {
       using Activity? activity = ActivitySource.StartActivity("cache.remove");
-      activity?.SetTag("cache.feature", key.Feature);
+      activity?.SetTag(CacheFeatureTag, key.Feature);
 
       var stopwatch = Stopwatch.StartNew();
       try
@@ -252,7 +254,7 @@ internal sealed class DistributedCacheService(
    public async Task RemoveByFeatureAsync(string feature, CancellationToken cancellationToken = default)
    {
       using Activity? activity = ActivitySource.StartActivity("cache.invalidate");
-      activity?.SetTag("cache.feature", feature);
+      activity?.SetTag(CacheFeatureTag, feature);
 
       var stopwatch = Stopwatch.StartNew();
       try

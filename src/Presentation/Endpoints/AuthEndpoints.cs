@@ -37,7 +37,7 @@ internal sealed class AuthEndpoints : IEndpoint
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status409Conflict)
-            .RequireRateLimiting("strict")
+            .RequireStrictRateLimiting()
             .MapToApiVersion(1, 0);
 
         group.MapPost("/login", Login)
@@ -48,7 +48,7 @@ internal sealed class AuthEndpoints : IEndpoint
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .RequireRateLimiting("strict")
+            .RequireStrictRateLimiting()
             .MapToApiVersion(1, 0);
 
         group.MapPost("/refresh", RefreshToken)
@@ -74,7 +74,7 @@ internal sealed class AuthEndpoints : IEndpoint
             .WithDescription("Sends a password reset email if the account exists.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem()
-            .RequireRateLimiting("strict")
+            .RequireStrictRateLimiting()
             .MapToApiVersion(1, 0);
 
         group.MapPost("/reset-password", ResetPassword)
@@ -84,7 +84,7 @@ internal sealed class AuthEndpoints : IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
-            .RequireRateLimiting("strict")
+            .RequireStrictRateLimiting()
             .MapToApiVersion(1, 0);
 
         group.MapGet("/oidc/login", OidcLogin)

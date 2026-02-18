@@ -1,3 +1,4 @@
+using Presentation.Constants;
 using System.Threading.RateLimiting;
 
 namespace Presentation.DependencyInjection;
@@ -34,7 +35,7 @@ internal static partial class PresentationDependencyInjection
              });
 
                 // Named policy for stricter endpoints (e.g., login, password reset)
-                options.AddPolicy("strict", context =>
+                options.AddPolicy(PolicyNames.StrictRateLimit, context =>
              {
                  string partitionKey = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
