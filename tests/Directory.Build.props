@@ -1,0 +1,7 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <VSTestSettingsFilePath>$(MSBuildThisFileDirectory)..\coverlet.runsettings</VSTestSettingsFilePath>
+  </PropertyGroup>
+</Project>

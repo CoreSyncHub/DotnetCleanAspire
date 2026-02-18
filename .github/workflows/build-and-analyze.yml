@@ -50,7 +50,7 @@ jobs:
               run: dotnet build --no-restore --no-incremental
 
             - name: Test with coverage
-              run: dotnet test --verbosity normal --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+              run: dotnet test --verbosity normal --settings coverlet.runsettings
 
             - name: End SonarQube analysis
               run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"

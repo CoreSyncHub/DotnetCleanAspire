@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>opencover</Format>
+          <ExcludeByFile>
+            **/Migrations/*.cs,
+            **/Program.cs,
+            **/DependencyInjection/*DI.cs,
+            **/DependencyInjection/Options/*Options.cs,
+            **/Constants/*.cs,
+            **/Extensions/*.cs,
+            **/Converters/*.cs,
+            **/Configurations/*.cs,
+            **/ServiceDefaults/*.cs,
+            **/AspireHost/*.cs
+          </ExcludeByFile>
+          <ExcludeByAttribute>
+            ObsoleteAttribute,
+            GeneratedCodeAttribute,
+            CompilerGeneratedAttribute,
+            ExcludeFromCodeCoverageAttribute
+          </ExcludeByAttribute>
+          <Exclude>
+            [*]*.Dtos.*,
+            [*]*.Enums.*,
+            [*]*.Exceptions.*,
+            [AspireHost]*,
+            [ServiceDefaults]*
+          </Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
