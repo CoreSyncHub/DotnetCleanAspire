@@ -1,6 +1,6 @@
 namespace Application.Abstractions.DependencyInjection;
 
-public interface IValidateOptions<TOptions> where TOptions : class
+public interface IValidateOptions<in TOptions> where TOptions : class
 {
     /// <summary>
     /// Validates the options instance.

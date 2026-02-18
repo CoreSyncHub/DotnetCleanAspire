@@ -209,9 +209,20 @@ internal static class QueryableCursorExtensions
       Id firstId = idSelector(items[0]);
       Id lastId = idSelector(items[^1]);
 
-      return direction is CursorDirection.Forward
-          ? (hasMore ? Cursor.Encode(lastId) : null, hasCursor ? Cursor.Encode(firstId) : null)
-          : (hasCursor ? Cursor.Encode(lastId) : null, hasMore ? Cursor.Encode(firstId) : null);
+      if (direction is CursorDirection.Forward)
+      {
+         string? nextCursor = hasMore ? Cursor.Encode(lastId) : null;
+         string? previousCursor = hasCursor ? Cursor.Encode(firstId) : null;
+
+         return (nextCursor, previousCursor);
+      }
+      else
+      {
+         string? nextCursor = hasCursor ? Cursor.Encode(lastId) : null;
+         string? previousCursor = hasMore ? Cursor.Encode(firstId) : null;
+
+         return (nextCursor, previousCursor);
+      }
    }
 
    private static (string? NextCursor, string? PreviousCursor) BuildSortKeyCursors<T, TSortKey>(
@@ -232,9 +243,20 @@ internal static class QueryableCursorExtensions
       string firstCursor = Cursor.Encode(idSelector(first), sortKeySelector(first));
       string lastCursor = Cursor.Encode(idSelector(last), sortKeySelector(last));
 
-      return direction is CursorDirection.Forward
-          ? (hasMore ? lastCursor : null, hasCursor ? firstCursor : null)
-          : (hasCursor ? lastCursor : null, hasMore ? firstCursor : null);
+      if (direction is CursorDirection.Forward)
+      {
+         string? nextCursor = hasMore ? lastCursor : null;
+         string? previousCursor = hasCursor ? firstCursor : null;
+
+         return (nextCursor, previousCursor);
+      }
+      else
+      {
+         string? nextCursor = hasCursor ? lastCursor : null;
+         string? previousCursor = hasMore ? firstCursor : null;
+
+         return (nextCursor, previousCursor);
+      }
    }
 
    private static Expression<Func<T, bool>> BuildIdComparisonExpression<T>(

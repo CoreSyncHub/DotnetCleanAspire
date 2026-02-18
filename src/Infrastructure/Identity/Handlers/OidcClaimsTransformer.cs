@@ -25,12 +25,10 @@ internal sealed class OidcClaimsTransformer(IOptions<OidcOptions> oidcOptions) :
 
         foreach (Claim groupClaim in groupClaims)
         {
-            if (config.Provider.GroupToRoleMapping.TryGetValue(groupClaim.Value, out string? roleName))
+            if (config.Provider.GroupToRoleMapping.TryGetValue(groupClaim.Value, out string? roleName)
+                && !principal.IsInRole(roleName))
             {
-                if (!principal.IsInRole(roleName))
-                {
-                    identity.AddClaim(new Claim(ClaimTypes.Role, roleName));
-                }
+                identity.AddClaim(new Claim(ClaimTypes.Role, roleName));
             }
         }
 

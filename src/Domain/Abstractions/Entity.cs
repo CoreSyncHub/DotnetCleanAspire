@@ -22,13 +22,12 @@ public abstract class Entity : IEntity, IEquatable<Entity>
       Id = id;
    }
 
-   public bool Equals(Entity? other) =>
-       other is not null && GetType() == other.GetType() && Id == other.Id;
+   public sealed override bool Equals(object? obj) =>
+       obj is Entity other && GetType() == other.GetType() && Id == other.Id;
 
-   /// <inheritdoc/>
-   public override bool Equals(object? obj) => Equals(obj as Entity);
+   public sealed override int GetHashCode() => HashCode.Combine(GetType(), Id);
 
-   public override int GetHashCode() => HashCode.Combine(GetType(), Id);
+   public bool Equals(Entity? other) => Equals((object?)other);
 
    public static bool operator ==(Entity? left, Entity? right)
       => left?.Equals(right) ?? (right is null);

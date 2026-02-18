@@ -40,11 +40,8 @@ internal static class CacheInterfacePropertyFilter
 
         foreach (JsonPropertyInfo property in typeInfo.Properties)
         {
-            if (implementsCacheable && CacheableProperties.Contains(property.Name))
-            {
-                property.ShouldSerialize = (_, _) => false;
-            }
-            else if (implementsCacheInvalidating && CacheInvalidatingProperties.Contains(property.Name))
+            if ((implementsCacheable && CacheableProperties.Contains(property.Name))
+                || (implementsCacheInvalidating && CacheInvalidatingProperties.Contains(property.Name)))
             {
                 property.ShouldSerialize = (_, _) => false;
             }

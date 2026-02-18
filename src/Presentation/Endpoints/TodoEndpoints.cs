@@ -97,11 +97,19 @@ internal sealed class TodoEndpoints : IEndpoint
             ? CursorDirection.Backward
             : CursorDirection.Forward;
 
-        CursorPageRequest pagination = cursor is null
-            ? CursorPageRequest.First(pageSize)
-            : cursorDirection is CursorDirection.Forward
-                ? CursorPageRequest.Next(cursor, pageSize)
-                : CursorPageRequest.Previous(cursor, pageSize);
+        CursorPageRequest pagination;
+        if (cursor is null)
+        {
+            pagination = CursorPageRequest.First(pageSize);
+        }
+        else if (cursorDirection is CursorDirection.Forward)
+        {
+            pagination = CursorPageRequest.Next(cursor, pageSize);
+        }
+        else
+        {
+            pagination = CursorPageRequest.Previous(cursor, pageSize);
+        }
 
         GetTodosQuery query = new()
         {

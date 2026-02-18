@@ -13,7 +13,7 @@ public static class ApplicationDbContextSeed
         //     dbContext.Users.Add(new User { ... });
         //     await dbContext.SaveChangesAsync(ct);
         // }
-        if (!dbContext.Roles.Any())
+        if (await dbContext.Roles.AnyAsync(ct) == false)
         {
             dbContext.Roles.AddRange(
                 new("Admin") { Description = "Administrator role with full permissions." },
