@@ -50,7 +50,7 @@ jobs:
               run: dotnet build --no-restore --no-incremental
 
             - name: Test with coverage
-              run: dotnet test --verbosity normal --settings coverlet.runsettings
+              run: dotnet test --verbosity normal --settings tests/.runsettings
 
             - name: End SonarQube analysis
               run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"

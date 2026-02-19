@@ -12,9 +12,6 @@ public sealed class CacheMetricsTests : IDisposable
 
     public CacheMetricsTests()
     {
-        var meterFactory = new TestMeterFactory();
-        _metrics = new CacheMetrics(meterFactory);
-
         _meterListener = new MeterListener
         {
             InstrumentPublished = (instrument, listener) =>
@@ -28,15 +25,18 @@ public sealed class CacheMetricsTests : IDisposable
 
         _meterListener.SetMeasurementEventCallback<long>((instrument, measurement, tags, state) =>
         {
-            _longMeasurements.Add(new MeasurementSnapshot<long>(measurement, tags.ToArray()));
+            _longMeasurements.Add(new MeasurementSnapshot<long>(instrument.Name, measurement, tags.ToArray()));
         });
 
         _meterListener.SetMeasurementEventCallback<double>((instrument, measurement, tags, state) =>
         {
-            _doubleMeasurements.Add(new MeasurementSnapshot<double>(measurement, tags.ToArray()));
+            _doubleMeasurements.Add(new MeasurementSnapshot<double>(instrument.Name, measurement, tags.ToArray()));
         });
 
         _meterListener.Start();
+
+        var meterFactory = new TestMeterFactory();
+        _metrics = new CacheMetrics(meterFactory);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class CacheMetricsTests : IDisposable
         _metrics.RecordHit(feature);
 
         // Assert
-        var measurement = _longMeasurements.FirstOrDefault(m => m.Value == 1);
+        var measurement = _longMeasurements.FirstOrDefault(m => m.InstrumentName == "cache.hits" && m.Value == 1);
         measurement.ShouldNotBeNull();
         measurement.Tags.Any(t => t.Key == "cache.key" && t.Value?.ToString() == "todos").ShouldBeTrue();
     }
@@ -64,7 +64,7 @@ public sealed class CacheMetricsTests : IDisposable
         _metrics.RecordMiss(feature);
 
         // Assert
-        var measurement = _longMeasurements.FirstOrDefault(m => m.Value == 1);
+        var measurement = _longMeasurements.FirstOrDefault(m => m.InstrumentName == "cache.misses" && m.Value == 1);
         measurement.ShouldNotBeNull();
         measurement.Tags.Any(t => t.Key == "cache.key" && t.Value?.ToString() == "users").ShouldBeTrue();
     }
@@ -80,7 +80,7 @@ public sealed class CacheMetricsTests : IDisposable
         _metrics.RecordInvalidation(pattern, count);
 
         // Assert
-        var measurement = _longMeasurements.FirstOrDefault(m => m.Value == count);
+        var measurement = _longMeasurements.FirstOrDefault(m => m.InstrumentName == "cache.invalidations" && m.Value == count);
         measurement.ShouldNotBeNull();
         measurement.Tags.Any(t => t.Key == "cache.pattern" && t.Value?.ToString() == pattern).ShouldBeTrue();
     }
@@ -158,7 +158,7 @@ public sealed class CacheMetricsTests : IDisposable
         _metrics.RecordHit(feature);
 
         // Assert
-        var measurement = _longMeasurements.FirstOrDefault(m => m.Value == 1);
+        var measurement = _longMeasurements.FirstOrDefault(m => m.InstrumentName == "cache.hits" && m.Value == 1);
         measurement.ShouldNotBeNull();
         measurement.Tags.Any(t => t.Key == "cache.key" && t.Value?.ToString() == "products").ShouldBeTrue();
     }
@@ -183,7 +183,7 @@ public sealed class CacheMetricsTests : IDisposable
     }
 
     // Helper class to snapshot measurements
-    private sealed record MeasurementSnapshot<T>(T Value, KeyValuePair<string, object?>[] Tags) where T : struct;
+    private sealed record MeasurementSnapshot<T>(string InstrumentName, T Value, KeyValuePair<string, object?>[] Tags) where T : struct;
 
     // Test helper class
     private sealed class TestMeterFactory : IMeterFactory

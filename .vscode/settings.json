@@ -15,6 +15,7 @@
     "Npgsql",
     "oidc",
     "Oidc",
+    "opencover",
     "Pkce",
     "Postgre",
     "postgres",
@@ -29,6 +30,7 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit"
   },
+  "dotnet.unitTests.runSettingsPath": "tests/.runsettings",
   "editor.rulers": [120],
   "files.associations": {
     "*.json": "jsonc",

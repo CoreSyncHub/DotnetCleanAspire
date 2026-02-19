@@ -21,7 +21,7 @@ internal sealed class OidcClaimsTransformer(IOptions<OidcOptions> oidcOptions) :
             return Task.FromResult(principal);
         }
 
-        IEnumerable<Claim> groupClaims = principal.FindAll(config.Provider.GroupClaimType);
+        var groupClaims = principal.FindAll(config.Provider.GroupClaimType).ToList();
 
         foreach (Claim groupClaim in groupClaims)
         {

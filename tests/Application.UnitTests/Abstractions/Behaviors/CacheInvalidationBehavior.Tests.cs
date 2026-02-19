@@ -152,6 +152,108 @@ public class CacheInvalidationBehaviorTests
             Times.AtLeastOnce);
     }
 
+    [Fact]
+    public async Task Handle_WithFeaturesToInvalidate_ShouldInvalidateFeatures()
+    {
+        // Arrange
+        TestFeatureInvalidatingCommand command = new();
+        var successResult = Result<TestResponse>.Success(new TestResponse("Success"));
+
+        Task<Result<TestResponse>> next()
+        {
+            return Task.FromResult(successResult);
+        }
+
+        // Act
+        Result<TestResponse> result = await _behavior.Handle(command, next, CancellationToken.None);
+
+        // Assert
+        result.ShouldBe(successResult);
+        _cacheServiceMock.Verify(
+            x => x.RemoveByFeatureAsync("todos", It.IsAny<CancellationToken>()),
+            Times.Once);
+        _cacheServiceMock.Verify(
+            x => x.RemoveByFeatureAsync("users", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithFeaturesToInvalidateAndFailure_ShouldNotInvalidateFeatures()
+    {
+        // Arrange
+        TestFeatureInvalidatingCommand command = new();
+        var failureResult = Result<TestResponse>.Failure(
+            new ResultError("Error", "Command failed", ErrorType.Failure));
+
+        Task<Result<TestResponse>> next()
+        {
+            return Task.FromResult(failureResult);
+        }
+
+        // Act
+        Result<TestResponse> result = await _behavior.Handle(command, next, CancellationToken.None);
+
+        // Assert
+        result.ShouldBe(failureResult);
+        _cacheServiceMock.Verify(
+            x => x.RemoveByFeatureAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenFeatureInvalidationFails_ShouldNotThrowException()
+    {
+        // Arrange
+        TestFeatureInvalidatingCommand command = new();
+        var successResult = Result<TestResponse>.Success(new TestResponse("Success"));
+
+        _cacheServiceMock
+            .Setup(x => x.RemoveByFeatureAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Cache service error"));
+
+        Task<Result<TestResponse>> next()
+        {
+            return Task.FromResult(successResult);
+        }
+
+        // Act & Assert - Should not throw
+        Result<TestResponse> result = await _behavior.Handle(command, next, CancellationToken.None);
+
+        result.ShouldBe(successResult);
+        _cacheServiceMock.Verify(
+            x => x.RemoveByFeatureAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task Handle_WithBothKeysAndFeatures_ShouldInvalidateBoth()
+    {
+        // Arrange
+        TestMixedInvalidatingCommand command = new();
+        var successResult = Result<TestResponse>.Success(new TestResponse("Success"));
+
+        Task<Result<TestResponse>> next()
+        {
+            return Task.FromResult(successResult);
+        }
+
+        // Act
+        Result<TestResponse> result = await _behavior.Handle(command, next, CancellationToken.None);
+
+        // Assert
+        result.ShouldBe(successResult);
+
+        // Verify keys invalidation
+        _cacheServiceMock.Verify(
+            x => x.RemoveAsync(It.Is<ICacheKey>(k => k.Feature == "specific"), "v1", It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        // Verify feature invalidation
+        _cacheServiceMock.Verify(
+            x => x.RemoveByFeatureAsync("entire-feature", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
     // Test helpers
     public sealed record TestResponse(string Message);
 
@@ -174,5 +276,20 @@ public class CacheInvalidationBehaviorTests
             new CacheKey("feature2", "value2"),
             new CacheKey("feature3", "value3")
         ];
+    }
+
+    public sealed record TestFeatureInvalidatingCommand : ICommand<TestResponse>, ICacheInvalidating
+    {
+        public IReadOnlyCollection<string> FeaturesToInvalidate => ["todos", "users"];
+    }
+
+    public sealed record TestMixedInvalidatingCommand : ICommand<TestResponse>, ICacheInvalidating
+    {
+        public IReadOnlyCollection<ICacheKey> KeysToInvalidate =>
+        [
+            new CacheKey("specific", "key1")
+        ];
+
+        public IReadOnlyCollection<string> FeaturesToInvalidate => ["entire-feature"];
     }
 }

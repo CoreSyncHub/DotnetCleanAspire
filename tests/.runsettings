@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
+  <RunConfiguration>
+    <ResultsDirectory>.\TestResults</ResultsDirectory>
+  </RunConfiguration>
   <DataCollectionRunSettings>
     <DataCollectors>
-      <DataCollector friendlyName="XPlat Code Coverage">
+      <DataCollector friendlyName="XPlat Code Coverage" enabled="true">
         <Configuration>
-          <Format>opencover</Format>
+          <Format>cobertura,opencover</Format>
           <ExcludeByFile>
             **/Migrations/*.cs,
             **/Program.cs,
