@@ -107,4 +107,12 @@ public sealed class TokenLifetimeOptions
     /// Default: true
     /// </summary>
     public bool RefreshTokenRotation { get; init; } = true;
+
+    /// <summary>
+    /// Grace period during which a rotated refresh token is still accepted.
+    /// This helps prevent race conditions when multiple concurrent requests use the same refresh token.
+    /// Only applies when <see cref="RefreshTokenRotation"/> is enabled.
+    /// Default: 30 seconds
+    /// </summary>
+    public TimeSpan RefreshTokenRotationGracePeriod { get; init; } = TimeSpan.FromSeconds(30);
 }

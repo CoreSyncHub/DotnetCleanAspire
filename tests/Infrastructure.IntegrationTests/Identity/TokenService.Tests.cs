@@ -286,7 +286,7 @@ public sealed class TokenServiceTests(TestContainersFixture containersFixture) :
     #region Token rotation tests
 
     [Fact]
-    public async Task RefreshTokensAsync_WithRotationEnabled_ShouldInvalidateOldRefreshToken()
+    public async Task RefreshTokensAsync_WithRotationEnabled_OldTokenShouldWorkWithinGracePeriod()
     {
         // Arrange
         ApplicationUser user = await CreateTestUserAsync("rotation@example.com");
@@ -297,14 +297,16 @@ public sealed class TokenServiceTests(TestContainersFixture containersFixture) :
             originalTokens.AccessToken,
             originalTokens.RefreshToken);
 
-        // Second refresh with old token (should fail due to rotation)
+        // Second refresh with old token (should succeed within grace period)
         Result<AuthTokensDto> secondRefresh = await _tokenService.RefreshTokensAsync(
             originalTokens.AccessToken,
             originalTokens.RefreshToken);
 
-        // Assert
+        // Assert - Both should succeed due to grace period
         firstRefresh.IsSuccess.ShouldBeTrue();
-        secondRefresh.IsFailure.ShouldBeTrue();
+        secondRefresh.IsSuccess.ShouldBeTrue();
+        // But they should return different refresh tokens
+        secondRefresh.Value.RefreshToken.ShouldNotBe(firstRefresh.Value.RefreshToken);
     }
 
     [Fact]
@@ -327,6 +329,99 @@ public sealed class TokenServiceTests(TestContainersFixture containersFixture) :
         // Assert
         firstRefresh.IsSuccess.ShouldBeTrue();
         secondRefresh.IsSuccess.ShouldBeTrue();
+    }
+
+    #endregion
+
+    #region Grace period tests
+
+    [Fact]
+    public async Task RefreshTokensAsync_WithinGracePeriod_ShouldAcceptRevokedToken()
+    {
+        // Arrange
+        ApplicationUser user = await CreateTestUserAsync("graceperiod@example.com");
+        AuthTokensDto originalTokens = await _tokenService.GenerateTokensAsync(user.Id, user.Email!, []);
+
+        // Act - First refresh (rotates the token)
+        Result<AuthTokensDto> firstRefresh = await _tokenService.RefreshTokensAsync(
+            originalTokens.AccessToken,
+            originalTokens.RefreshToken);
+
+        // Second refresh with old token immediately after (within grace period)
+        Result<AuthTokensDto> secondRefresh = await _tokenService.RefreshTokensAsync(
+            originalTokens.AccessToken,
+            originalTokens.RefreshToken);
+
+        // Assert
+        firstRefresh.IsSuccess.ShouldBeTrue();
+        secondRefresh.IsSuccess.ShouldBeTrue();
+        secondRefresh.Value.AccessToken.ShouldNotBeNullOrEmpty();
+        secondRefresh.Value.RefreshToken.ShouldNotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task RefreshTokensAsync_WithinGracePeriod_ShouldReturnNewTokens()
+    {
+        // Arrange
+        ApplicationUser user = await CreateTestUserAsync("gracenew@example.com");
+        AuthTokensDto originalTokens = await _tokenService.GenerateTokensAsync(user.Id, user.Email!, []);
+
+        // Act
+        Result<AuthTokensDto> firstRefresh = await _tokenService.RefreshTokensAsync(
+            originalTokens.AccessToken,
+            originalTokens.RefreshToken);
+
+        Result<AuthTokensDto> graceRefresh = await _tokenService.RefreshTokensAsync(
+            originalTokens.AccessToken,
+            originalTokens.RefreshToken);
+
+        // Assert - Grace period refresh should return different tokens than first refresh
+        firstRefresh.IsSuccess.ShouldBeTrue();
+        graceRefresh.IsSuccess.ShouldBeTrue();
+        graceRefresh.Value.RefreshToken.ShouldNotBe(firstRefresh.Value.RefreshToken);
+    }
+
+    [Fact]
+    public async Task RefreshTokensAsync_WithinGracePeriod_NewTokensShouldBeUsable()
+    {
+        // Arrange
+        ApplicationUser user = await CreateTestUserAsync("graceusable@example.com");
+        AuthTokensDto originalTokens = await _tokenService.GenerateTokensAsync(user.Id, user.Email!, []);
+
+        // Act
+        await _tokenService.RefreshTokensAsync(originalTokens.AccessToken, originalTokens.RefreshToken);
+
+        Result<AuthTokensDto> graceRefresh = await _tokenService.RefreshTokensAsync(
+            originalTokens.AccessToken,
+            originalTokens.RefreshToken);
+
+        // Use the tokens from grace period refresh
+        Result<AuthTokensDto> subsequentRefresh = await _tokenService.RefreshTokensAsync(
+            graceRefresh.Value.AccessToken,
+            graceRefresh.Value.RefreshToken);
+
+        // Assert
+        graceRefresh.IsSuccess.ShouldBeTrue();
+        subsequentRefresh.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task RefreshTokensAsync_ManuallyRevokedToken_ShouldNotBenefitFromGracePeriod()
+    {
+        // Arrange
+        ApplicationUser user = await CreateTestUserAsync("manualrevoke@example.com");
+        AuthTokensDto tokens = await _tokenService.GenerateTokensAsync(user.Id, user.Email!, []);
+
+        // Manually revoke (not via rotation)
+        await _tokenService.RevokeRefreshTokenAsync(tokens.RefreshToken);
+
+        // Act - Try to use revoked token immediately
+        Result<AuthTokensDto> result = await _tokenService.RefreshTokensAsync(
+            tokens.AccessToken,
+            tokens.RefreshToken);
+
+        // Assert - Should fail because manually revoked tokens have no replacement
+        result.IsFailure.ShouldBeTrue();
     }
 
     #endregion

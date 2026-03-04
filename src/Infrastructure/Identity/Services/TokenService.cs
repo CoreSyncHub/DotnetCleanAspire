@@ -95,7 +95,24 @@ internal sealed class TokenService(
         RefreshTokenEntity? storedToken = await dbContext.RefreshTokens
             .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash, cancellationToken);
 
-        if (storedToken is null || !storedToken.IsActive)
+        if (storedToken is null)
+        {
+            return AuthErrors.InvalidRefreshToken;
+        }
+
+        TokenLifetimeOptions tokenConfig = identityOptions.Value.Tokens;
+
+        // Handle grace period for rotated tokens
+        if (storedToken.IsRevoked && tokenConfig.RefreshTokenRotation)
+        {
+            return await HandleGracePeriodRefreshAsync(
+                storedToken,
+                accessToken,
+                tokenConfig.RefreshTokenRotationGracePeriod,
+                cancellationToken);
+        }
+
+        if (!storedToken.IsActive)
         {
             return AuthErrors.InvalidRefreshToken;
         }
@@ -116,7 +133,7 @@ internal sealed class TokenService(
         IReadOnlyList<string> roles = await GetUserRolesAsync(storedToken.UserId, cancellationToken);
 
         string? rotatedRefreshToken = null;
-        if (identityOptions.Value.Tokens.RefreshTokenRotation)
+        if (tokenConfig.RefreshTokenRotation)
         {
             rotatedRefreshToken = GenerateSecureToken();
             storedToken.RevokedAt = DateTimeOffset.UtcNow;
@@ -130,6 +147,111 @@ internal sealed class TokenService(
             roles,
             rotatedRefreshToken,
             cancellationToken);
+    }
+
+    private async Task<Result<AuthTokensDto>> HandleGracePeriodRefreshAsync(
+        RefreshTokenEntity revokedToken,
+        string accessToken,
+        TimeSpan gracePeriod,
+        CancellationToken cancellationToken)
+    {
+        // Check if within grace period
+        bool withinGracePeriod = revokedToken.RevokedAt.HasValue
+            && DateTimeOffset.UtcNow < revokedToken.RevokedAt.Value.Add(gracePeriod);
+
+        if (!withinGracePeriod || revokedToken.ReplacedByTokenHash is null)
+        {
+            return AuthErrors.InvalidRefreshToken;
+        }
+
+        // Validate access token claims
+        ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(accessToken);
+        string? rawUserId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? rawEmail = principal?.FindFirst(ClaimTypes.Email)?.Value;
+        if (rawUserId is null || !Id.TryParse(rawUserId, null, out Id userId) || rawEmail is null)
+        {
+            return AuthErrors.InvalidToken;
+        }
+
+        if (userId != revokedToken.UserId)
+        {
+            return AuthErrors.InvalidRefreshToken;
+        }
+
+        // Find the replacement token that was issued during rotation
+        RefreshTokenEntity? replacementToken = await dbContext.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.TokenHash == revokedToken.ReplacedByTokenHash, cancellationToken);
+
+        if (replacementToken is null || !replacementToken.IsActive)
+        {
+            return AuthErrors.InvalidRefreshToken;
+        }
+
+        // Return tokens using the replacement refresh token (don't generate new ones)
+        IReadOnlyList<string> roles = await GetUserRolesAsync(revokedToken.UserId, cancellationToken);
+
+        // Generate new access token but reuse the existing replacement refresh token
+        return await GenerateTokensForGracePeriodAsync(
+            revokedToken.UserId,
+            rawEmail,
+            roles,
+            replacementToken,
+            cancellationToken);
+    }
+
+    private async Task<AuthTokensDto> GenerateTokensForGracePeriodAsync(
+        Id userId,
+        string userEmail,
+        IEnumerable<string> roles,
+        RefreshTokenEntity existingRefreshToken,
+        CancellationToken cancellationToken)
+    {
+        JwtOptions jwt = jwtOptions.Value;
+        TokenLifetimeOptions tokenConfig = identityOptions.Value.Tokens;
+
+        DateTimeOffset expiresAt = DateTimeOffset.UtcNow.Add(tokenConfig.AccessTokenLifetime);
+
+        List<Claim> claims =
+        [
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(ClaimTypes.Email, userEmail),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        ];
+
+        foreach (string role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(jwt.Key));
+        SigningCredentials credentials = new(key, SecurityAlgorithms.HmacSha256);
+
+        JwtSecurityToken token = new(
+            issuer: jwt.Issuer,
+            audience: jwt.Audience,
+            claims: claims,
+            expires: expiresAt.UtcDateTime,
+            signingCredentials: credentials);
+
+        string accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+        // Rotate from the replacement token to provide a fresh refresh token
+        string newRefreshToken = GenerateSecureToken();
+        existingRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
+        existingRefreshToken.ReplacedByTokenHash = HashToken(newRefreshToken);
+
+        RefreshTokenEntity newRefreshTokenEntity = new()
+        {
+            TokenHash = HashToken(newRefreshToken),
+            UserId = userId,
+            ExpiresAt = DateTimeOffset.UtcNow.Add(tokenConfig.RefreshTokenLifetime),
+            CreatedByIp = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString()
+        };
+
+        dbContext.RefreshTokens.Add(newRefreshTokenEntity);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new AuthTokensDto(accessToken, newRefreshToken, expiresAt);
     }
 
     /// <inheritdoc/>

@@ -69,5 +69,11 @@ public sealed class AuthIdentityOptionsValidator : OptionsValidator<AuthIdentity
 
         if (tokens.RefreshTokenLifetime <= tokens.AccessTokenLifetime)
             errors.Add($"{prefix}.{nameof(tokens.RefreshTokenLifetime)} must be greater than {nameof(tokens.AccessTokenLifetime)}.");
+
+        if (tokens.RefreshTokenRotationGracePeriod < TimeSpan.Zero)
+            errors.Add($"{prefix}.{nameof(tokens.RefreshTokenRotationGracePeriod)} must not be negative.");
+
+        if (tokens.RefreshTokenRotationGracePeriod > TimeSpan.FromMinutes(5))
+            errors.Add($"{prefix}.{nameof(tokens.RefreshTokenRotationGracePeriod)} must not exceed 5 minutes.");
     }
 }
