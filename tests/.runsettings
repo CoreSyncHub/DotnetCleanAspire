@@ -8,20 +8,20 @@
       <DataCollector friendlyName="XPlat Code Coverage" enabled="true">
         <Configuration>
           <Format>cobertura,opencover</Format>
-          <ExcludeByFile>**/Migrations/*.cs,**/Program.cs,**/DependencyInjection/*DI.cs,**/DependencyInjection/Options/*Options.cs,**/Constants/*.cs,**/Extensions/*.cs,**/Converters/*.cs,**/Configurations/*.cs,**/ServiceDefaults/*.cs,**/AspireHost/*.cs</ExcludeByFile>
-          <ExcludeByAttribute>
-            ObsoleteAttribute,
-            GeneratedCodeAttribute,
-            CompilerGeneratedAttribute,
-            ExcludeFromCodeCoverageAttribute
-          </ExcludeByAttribute>
+          <ExcludeByAttribute>ObsoleteAttribute,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
           <Exclude>
             [AspireHost]*,
             [ServiceDefaults]*,
-            [*]*Errors,
-            [*]*Dto,
-            [*]*CacheKeys,
+            [*]*.Converters.*,
+            [*]*.DependencyInjection.*,
+            [*]*.Options.*,
+            [*]*.Errors.*,
+            [*]*.Dtos.*,
+            [*]*.Constants.*,
+            [*]*.Migrations.*,
+            [*]*.Extensions.*
           </Exclude>
+          <ExcludeByFile>**/Program.cs,**/ServiceDefaults/*.cs,**/AspireHost/*.cs</ExcludeByFile>
         </Configuration>
       </DataCollector>
     </DataCollectors>

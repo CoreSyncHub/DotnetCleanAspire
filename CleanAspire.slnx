@@ -10,6 +10,9 @@
   <Folder Name="/Solution Items/.github/">
     <File Path=".github/copilot-instructions.md" />
   </Folder>
+  <Folder Name="/Solution Items/.claude/">
+    <File Path=".claude/claude.md" />
+  </Folder>
   <Folder Name="/Aspire/">
     <Project Path="src/AspireHost/AspireHost.csproj" Type="C#" />
     <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" Type="C#" />
@@ -26,5 +29,8 @@
     <Project Path="tests/Application.IntegrationTests/Application.IntegrationTests.csproj" Type="C#" />
     <Project Path="tests/Infrastructure.IntegrationTests/Infrastructure.IntegrationTests.csproj" Type="C#" />
     <Project Path="tests/Infrastructure.UnitTests/Infrastructure.UnitTests.csproj" />
+    <File Path="tests/.editorconfig" />
+    <File Path="tests/.runsettings" />
+    <File Path="tests/Directory.Build.props" />
   </Folder>
 </Solution>
