@@ -24,11 +24,12 @@
     <Project Path="src/Presentation/Presentation.csproj" Type="C#" />
   </Folder>
   <Folder Name="/Tests/">
+    <Project Path="tests/Architecture.Tests/Architecture.Tests.csproj" Type="C#" />
     <Project Path="tests/Domain.UnitTests/Domain.UnitTests.csproj" Type="C#" />
     <Project Path="tests/Application.UnitTests/Application.UnitTests.csproj" Type="C#" />
     <Project Path="tests/Application.IntegrationTests/Application.IntegrationTests.csproj" Type="C#" />
     <Project Path="tests/Infrastructure.IntegrationTests/Infrastructure.IntegrationTests.csproj" Type="C#" />
-    <Project Path="tests/Infrastructure.UnitTests/Infrastructure.UnitTests.csproj" />
+    <Project Path="tests/Infrastructure.UnitTests/Infrastructure.UnitTests.csproj" Type="C#" />
     <File Path="tests/.editorconfig" />
     <File Path="tests/.runsettings" />
     <File Path="tests/Directory.Build.props" />

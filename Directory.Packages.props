@@ -37,6 +37,7 @@
     <PackageVersion Include="Ulid" Version="1.4.1" />
     <!-- Testing packages -->
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.2" />
