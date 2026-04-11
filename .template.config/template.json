@@ -49,13 +49,6 @@
             "src/Application/_TemplateVariants/**",
             "src/Infrastructure/_TemplateVariants/**"
           ]
-        },
-        {
-          "condition": "(!includeExamples)",
-          "exclude": [
-            "src/Application/_TemplateVariants/**",
-            "src/Infrastructure/_TemplateVariants/**"
-          ]
         }
       ]
     }
