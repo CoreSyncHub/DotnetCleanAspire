@@ -11,6 +11,46 @@
   },
   "sourceName": "CleanAspire",
   "preferNameDirectory": true,
-  "symbols": {},
-  "sources": []
+  "symbols": {
+    "includeExamples": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Include Todo example entities, endpoints, and tests"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(!includeExamples)",
+          "exclude": [
+            "src/Domain/Todos/**",
+            "src/Application/Features/Todos/**",
+            "src/Infrastructure/Persistence/Configurations/TodoConfiguration.cs",
+            "src/Presentation/Endpoints/TodoEndpoints.cs",
+            "src/Infrastructure/Persistence/Migrations/20260219222706_Todos.cs",
+            "src/Infrastructure/Persistence/Migrations/20260219222706_Todos.Designer.cs",
+            "src/Infrastructure/Persistence/Migrations/ApplicationDbContextModelSnapshot.cs",
+            "src/Application/Abstractions/Persistence/IApplicationDbContext.cs",
+            "src/Infrastructure/Persistence/ApplicationDbContext.cs",
+            "tests/Domain.UnitTests/Todos/**",
+            "tests/Application.UnitTests/Features/Todos/**"
+          ],
+          "rename": {
+            "src/Application/_TemplateVariants/IApplicationDbContext.cs": "src/Application/Abstractions/Persistence/IApplicationDbContext.cs",
+            "src/Infrastructure/_TemplateVariants/ApplicationDbContext.cs": "src/Infrastructure/Persistence/ApplicationDbContext.cs",
+            "src/Infrastructure/_TemplateVariants/ApplicationDbContextModelSnapshot.cs": "src/Infrastructure/Persistence/Migrations/ApplicationDbContextModelSnapshot.cs"
+          }
+        },
+        {
+          "condition": "(includeExamples)",
+          "exclude": [
+            "src/Application/_TemplateVariants/**",
+            "src/Infrastructure/_TemplateVariants/**"
+          ]
+        }
+      ]
+    }
+  ]
 }

@@ -33,4 +33,8 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="_TemplateVariants/**" />
+  </ItemGroup>
+
 </Project>
