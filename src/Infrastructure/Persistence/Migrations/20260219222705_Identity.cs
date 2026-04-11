@@ -28,24 +28,6 @@ namespace Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "todos",
-                columns: table => new
-                {
-                    id = table.Column<string>(type: "char(26)", unicode: false, maxLength: 26, nullable: false, collation: "C"),
-                    title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    created_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    last_modified_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_todos", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
                 {
@@ -232,16 +214,6 @@ namespace Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_todos_created",
-                table: "todos",
-                column: "created_utc");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_todos_status",
-                table: "todos",
-                column: "status");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_user_claims_UserId",
                 table: "user_claims",
                 column: "UserId");
@@ -283,9 +255,6 @@ namespace Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "role_claims");
-
-            migrationBuilder.DropTable(
-                name: "todos");
 
             migrationBuilder.DropTable(
                 name: "user_claims");
