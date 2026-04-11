@@ -24,4 +24,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="_TemplateVariants/**" />
+  </ItemGroup>
+
 </Project>
