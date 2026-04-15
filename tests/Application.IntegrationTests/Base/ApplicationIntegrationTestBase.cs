@@ -26,12 +26,18 @@ public abstract class ApplicationIntegrationTestBase : IAsyncLifetime
     protected ApplicationDbContext DbContext { get; private set; } = null!;
 
     /// <summary>
-    /// Controllable user context. Cast to TestUser when you need to set Id/Email.
-    /// Resolved as TestUser from DI but exposed via IUser to respect accessibility.
+    /// Controllable user context. Set Id and Email before dispatching to control the authenticated user.
+    /// The same instance is shared with the DI pipeline (Scoped registration).
     /// </summary>
-    protected IUser CurrentUser { get; private set; } = null!;
+    protected TestUser CurrentUser { get; private set; } = null!;
 
     protected IIdentityService IdentityService { get; private set; } = null!;
+
+    /// <summary>
+    /// Resolves a service from the current test's DI scope.
+    /// </summary>
+    protected T GetService<T>() where T : notnull
+        => _scope.ServiceProvider.GetRequiredService<T>();
 
     protected ApplicationIntegrationTestBase(TestContainersFixture fixture)
     {
@@ -64,8 +70,13 @@ public abstract class ApplicationIntegrationTestBase : IAsyncLifetime
     /// </summary>
     private async Task ResetDatabaseAsync()
     {
+        // List all tables explicitly — relying solely on CASCADE is fragile when FK policies change.
         await DbContext.Database.ExecuteSqlRawAsync("""
-            TRUNCATE TABLE todos, users, roles RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE todos,
+                          user_tokens, user_logins, user_claims, user_roles,
+                          role_claims, refresh_tokens,
+                          users, roles
+            RESTART IDENTITY CASCADE;
             """);
     }
 
@@ -80,7 +91,10 @@ public abstract class ApplicationIntegrationTestBase : IAsyncLifetime
         Result<AuthTokensDto> result = await Dispatcher.Send(
             new RegisterCommand(email, password, password));
 
-        result.IsSuccess.ShouldBeTrue($"RegisterUserAsync failed: {result.Error}");
+        if (result.IsFailure)
+            throw new InvalidOperationException($"RegisterUserAsync failed: {result.Error.Code} - {result.Error.Message}");
+
+        result.IsSuccess.ShouldBeTrue();
         return result.Value;
     }
 }

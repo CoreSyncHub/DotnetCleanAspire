@@ -5,7 +5,7 @@ namespace Application.IntegrationTests.Fakes;
 /// Registered as Scoped so the same instance is shared within a test's DI scope.
 /// Tests can set Id and Email to control the authenticated user context.
 /// </summary>
-internal sealed class TestUser : IUser
+public sealed class TestUser : IUser
 {
     public Id? Id { get; set; }
     public string? Email { get; set; }
